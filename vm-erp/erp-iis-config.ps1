@@ -1,0 +1,81 @@
+# AppCMD
+$AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
+
+###########################
+##  Configuração do ERP
+###########################
+
+# Cria estrutura inicial 
+new-item -type Directory /linx/ERP_PROD
+new-item -type Directory /linx/ERP_RC
+
+# Asp Upload
+new-item -type Directory /upload
+
+# Cria sites 
+$siteList = @(
+    [pscustomobject]@{Name = 'ERP_PROD_1' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:prod-1' }
+    [pscustomobject]@{Name = 'ERP_PROD_2' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:prod-2' }
+    [pscustomobject]@{Name = 'ERP_PROD_3' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:prod-3' }
+    [pscustomobject]@{Name = 'ERP_RC_1'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:rc-1' }
+)
+  
+# Configure Site ERP SLOT 
+Foreach ($item in $siteList) {
+    $site = ($item).Name
+    $path = ($item).SitePath
+    $Bindings = ($item).Bindings
+ 
+    & $AppCmd add apppool /name:$site
+    & $AppCmd add site /name:$site /physicalPath:$path /bindings:$Bindings
+    # Adiciona um caracter slash / no final do nome do Site  
+    & $AppCmd set app ($site + "/") /applicationPool:$site
+}
+ 
+#c:\windows\system32\inetsrv\appcmd.exe add site /name:'ERP' /bindings:"http/*:80:" /physicalPath:"C:\Linx\ERP" -virtualDirectoryDefaults.userName:USERNAME -virtualDirectoryDefaults.password:PASSWORD
+#C:\Windows\system32\inetsrv\appcmd.exe set vdir 'ERP/' -physicalPath:"c:\Linx\ERP" 
+
+# APP POOL CONFIG
+Get-ChildItem IIS:\AppPools\ 
+$AppPools = (Get-ChildItem IIS:\AppPools\ | Where-Object { $_.Name -like "ERP_*" }).Name
+foreach ($App in $AppPools) {
+  & $AppCmd set AppPool $App /managedRuntimeVersion:'' /commit:apphost 
+  & $AppCmd set AppPool $App /managedPipelineMode:'Classic' /commit:apphost
+  & $AppCmd set AppPool $App /enable32BitAppOnWin64:'true' /commit:apphost
+  & $AppCmd set AppPool $App /processModel.idleTimeout:'01:00:00' /commit:apphost
+  & $AppCmd set AppPool $App /processModel.pingResponseTime:'00:00:15' /commit:apphost
+  & $AppCmd set AppPool $App /processModel.pingInterval:'00:00:30' /commit:apphost
+  & $AppCmd set AppPool $App /processModel.shutdownTimeLimit:'00:00:30' /commit:apphost
+  & $AppCmd set AppPool $App /processModel.startupTimeLimit:'00:00:30' /commit:apphost
+  & $AppCmd set AppPool $App /startmode:'OnDemand' /commit:apphost
+  # Recycling Config
+  & $AppCmd set AppPool $App /-recycling.periodicRestart.time
+  & $AppCmd set AppPool $App /recycling.periodicRestart.time:"00:00:00" /commit:apphost
+  & $AppCmd set AppPool $App /recycling.periodicRestart.memory:'3481600' 
+  & $AppCmd set AppPool $App /recycling.periodicRestart.privateMemory:'2867200' /commit:apphost
+}
+
+# ASP CONFIG 
+& $AppCmd set config -section:system.webServer/asp /scriptErrorSentToBrowser:'True' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /errorsToNTLog:'True' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /EnableParentPaths:'True' /commit:apphost 
+  
+# TrackingID MS 2208240040004733 - MTA must be disabled 
+& $AppCmd  set config -section:system.webServer/asp /comPlus.executeInMta:'False' /commit:apphost 
+
+ & $AppCmd set config -section:system.webServer/asp /Session.timeOut:'00:20:00' /commit:apphost 
+ & $AppCmd set config -section:system.webServer/asp /Limits.bufferingLimit:'10094304' /commit:apphost 
+ & $AppCmd set config -section:system.webServer/asp /Limits.maxRequestEntityAllowed:'2147483647' /commit:apphost 
+ & $AppCmd set config -section:system.webServer/asp /Limits.processorThreadMax:'250' /commit:apphost 
+ & $AppCmd set config -section:system.webServer/asp /Limits.scriptTimeout:'00:10:00' /commit:apphost 
+ & $AppCmd set config -section:system.webServer/asp /cache.scriptFileCacheSize:'0' /commit:apphost 
+ & $AppCmd set config -section:system.webServer/asp /cache.maxDiskTemplateCacheFiles:'0' /commit:apphost 
+ & $AppCmd set config -section:system.webServer/asp /cache.scriptEngineCacheMax:'0' /commit:apphost 
+ & $AppCmd set config -section:system.webServer/asp /cache.enableTypelibCache:'True' /commit:apphost 
+ & $AppCmd set config -section:system.webServer/asp /cache.diskTemplateCacheDirectory:'c:\inetpub\temp\ASP Compiled Templates' /commit:apphost 
+
+# Dynamic compression disabled
+& $AppCmd set config -section:system.webServer/urlCompression /doDynamicCompression:'false' /commit:apphost 
+& $AppCmd set config -section:system.webServer/httpCompression /minFileSizeForComp:2700 /commit:apphost 
+& $AppCmd set config -section:system.webServer/httpCompression /maxDiskSpaceUsage:16000 /commit:apphost 
+
