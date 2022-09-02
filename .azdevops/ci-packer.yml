@@ -39,7 +39,6 @@ steps:
               -var "image_version=$(build.version)" .
       workingDirectory: MVX.IAC/PACKER/vm-erp
       env:
-        TF_IN_AUTOMATION: true
         PKR_VAR_client_id: $(CLIENT_ID)
         PKR_VAR_client_secret: $(CLIENT_SECRET)
         PKR_VAR_subscription_id: $(SUBSCRIPTION_ID)
