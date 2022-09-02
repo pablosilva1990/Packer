@@ -40,8 +40,8 @@ steps:
       workingDirectory: MVX.IAC/PACKER/vm-erp
       env:
         TF_IN_AUTOMATION: true
-        PKR_VAR_client_id: $(tf-sp-clientId)
-        PKR_VAR_client_secret: $(tf-sp-clientSecret)
-        PKR_VAR_subscription_id: $(tf-sp-subscriptionId)
-        PKR_VAR_tenant: $(tf-sp-tenantId)
+        PKR_VAR_client_id: $(CLIENT_ID)
+        PKR_VAR_client_secret: $(CLIENT_SECRET)
+        PKR_VAR_subscription_id: $(SUBSCRIPTION_ID)
+        PKR_VAR_tenant: $(TENANT_ID)
     displayName: 'packer build'
