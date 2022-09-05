@@ -2,17 +2,17 @@ trigger: none
 name: 1.0.$(Rev:r)
 
 variables:
-- name: ManagedImagePrefix
+#- name: ManagedImagePrefix
   #value: "mvx_prod_erp_$(version)"
-- name: AzureGalleryName
+#- name: AzureGalleryName
   # sharedgallery_microvix_production
-- name: AzureGalleryManagedImagePrefix
+#- name: AzureGalleryManagedImagePrefix
   # mvx_prod_erp
-- name: AzureResourceGroupTemplate
+#- name: AzureResourceGroupTemplate
   # mvxprd-templates
 - name: PACKER_RELEASE
   value: '1.8.2'
-- name: WORK_PATH
+#- name: WORK_PATH
 
 pool: 
   vmImage: 'ubuntu-latest'
@@ -40,9 +40,9 @@ steps:
       targetType: 'inline'
       script: |
             packer build -force  \
-              -var "managed_image_prefix=$(ManagedImagePrefix)" \
-              -var "gallery_name=$(AzureGalleryName)" \
-              -var "gallery_managed_image_prefix=$(AzureGalleryManagedImagePrefix)" \
+              -var "managed_image_prefix=$(MANAGED_IMAGE_PREFIX)" \
+              -var "gallery_name=$(AZUREGALLERYNAME)" \
+              -var "gallery_managed_image_prefix=$(AZURE_GALLERY_MANAGEDIMAGE_PREFIX)" \
               -var "managed_image_resource_group_name=$(AzureResourceGroupTemplate)" \
               -var "image_version=$(Build.BuildNumber)" .
     env:
