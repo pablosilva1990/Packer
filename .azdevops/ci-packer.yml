@@ -13,6 +13,7 @@ variables:
   # mvxprd-templates
 - name: PACKER_RELEASE
   value: '1.8.2'
+- name: WORK_PATH
 
 pool: 
   vmImage: 'ubuntu-latest'
@@ -29,7 +30,7 @@ steps:
   
   - task: Bash@3
     inputs:
-      workingDirectory: MVX.IAC/PACKER/vm-erp
+      workingDirectory: $(WORK_PATH)
       targetType: 'inline'
       script: |
             packer build -force  \
