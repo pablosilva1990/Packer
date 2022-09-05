@@ -15,7 +15,7 @@ variables:
   value: '1.8.2'
 
 pool: 
-  name: Default
+  vmImage: 'ubuntu-latest'
 
 steps:
 
