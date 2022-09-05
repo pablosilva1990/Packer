@@ -29,14 +29,14 @@ steps:
 
   - task: Bash@3
     inputs:
-      workingDirectory: $(WORK_PATH)
+      workingDirectory: '$(WORK_PATH)'
       targetType: 'inline'
       script: |
         ls -lR
 
   - task: Bash@3
     inputs:
-      workingDirectory: $(WORK_PATH)
+      workingDirectory:  '$(WORK_PATH)'
       targetType: 'inline'
       script: |
             packer build -force  \
