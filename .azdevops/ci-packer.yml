@@ -29,14 +29,14 @@ steps:
 
   - task: Bash@3
     inputs:
-      workingDirectory: '$(WORK_PATH)'
+      workingDirectory: vm-erp
       targetType: 'inline'
       script: |
         ls -lR
 
   - task: Bash@3
     inputs:
-      workingDirectory:  '$(WORK_PATH)'
+      workingDirectory:  vm-erp
       targetType: 'inline'
       script: |
             packer build -force  \
