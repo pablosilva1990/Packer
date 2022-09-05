@@ -1,7 +1,6 @@
 trigger: none
 name: 1.0.$(Rev:r)
 
-
 variables:
 - name: ManagedImagePrefix
   #value: "mvx_prod_erp_$(version)"
@@ -38,7 +37,7 @@ steps:
               -var "gallery_name=$(AzureGalleryName)" \
               -var "gallery_managed_image_prefix=$(AzureGalleryManagedImagePrefix)" \
               -var "managed_image_resource_group_name=$(AzureResourceGroupTemplate)" \
-              -var "image_version=$(build.version)" .
+              -var "image_version=$(Build.BuildNumber)" .
     env:
      PKR_VAR_client_id: $(CLIENT_ID)
      PKR_VAR_client_secret: $(CLIENT_SECRET)
