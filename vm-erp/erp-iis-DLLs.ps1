@@ -40,6 +40,5 @@ copy-item c:\linx\DLLS\Biometria\NbioBspCom.dll c:\WINDOWS\SysWOW64\
 regsvr32 /s c:\windows\sysWow64\nbiobspcom.dll 
 
 # Cleanup 
-write-Host "Cleanup files"
-Remove-Item -Recurse -Force -Confirm:$false -path c:\Linx\DLLs
+write-Host "Cleanup Zip"
 Remove-Item -Force -Confirm:$false -path c:\Linx\Dlls.zip

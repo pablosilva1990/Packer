@@ -1,9 +1,6 @@
 # AppCMD
 $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
-
-###########################
-##  Configuração do ERP
-###########################
+import-module webAdministration
 
 # Cria estrutura inicial 
 new-item -type Directory /linx/ERP_PROD
@@ -14,10 +11,10 @@ new-item -type Directory /upload
 
 # Cria sites 
 $siteList = @(
-    [pscustomobject]@{Name = 'ERP_PROD_1' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:prod-1' }
-    [pscustomobject]@{Name = 'ERP_PROD_2' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:prod-2' }
-    [pscustomobject]@{Name = 'ERP_PROD_3' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:prod-3' }
-    [pscustomobject]@{Name = 'ERP_RC_1'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:rc-1' }
+    [pscustomobject]@{Name = 'ERP_PROD_1' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn04.microvix.com.br'  }
+    [pscustomobject]@{Name = 'ERP_PROD_2' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn02.microvix.com.br'  }
+    [pscustomobject]@{Name = 'ERP_PROD_3' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn03.microvix.com.br'  }
+    [pscustomobject]@{Name = 'ERP_RC_1'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:lixn-rc.microvix.com.br' }
 )
   
 # Configure Site ERP SLOT 
@@ -31,9 +28,6 @@ Foreach ($item in $siteList) {
     # Adiciona um caracter slash / no final do nome do Site  
     & $AppCmd set app ($site + "/") /applicationPool:$site
 }
- 
-#c:\windows\system32\inetsrv\appcmd.exe add site /name:'ERP' /bindings:"http/*:80:" /physicalPath:"C:\Linx\ERP" -virtualDirectoryDefaults.userName:USERNAME -virtualDirectoryDefaults.password:PASSWORD
-#C:\Windows\system32\inetsrv\appcmd.exe set vdir 'ERP/' -physicalPath:"c:\Linx\ERP" 
 
 # APP POOL CONFIG
 Get-ChildItem IIS:\AppPools\ 
