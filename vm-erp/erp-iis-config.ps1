@@ -1,6 +1,6 @@
 # AppCMD
 $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
-import-module webAdministration
+import-module WebAdministration
 
 # Cria estrutura inicial 
 new-item -type Directory /linx/ERP_PROD
@@ -19,34 +19,30 @@ $siteList = @(
   
 # Configure Site ERP SLOT 
 Foreach ($item in $siteList) {
-    $site = ($item).Name
-    $path = ($item).SitePath
-    $Bindings = ($item).Bindings
+  $site = ($item).Name
+  $path = ($item).SitePath
+  $Bindings = ($item).Bindings
  
-    & $AppCmd add apppool /name:$site
-    & $AppCmd add site /name:$site /physicalPath:$path /bindings:$Bindings
-    # Adiciona um caracter slash / no final do nome do Site  
-    & $AppCmd set app ($site + "/") /applicationPool:$site
-}
-
-# APP POOL CONFIG
-Get-ChildItem IIS:\AppPools\ 
-$AppPools = (Get-ChildItem IIS:\AppPools\ | Where-Object { $_.Name -like "ERP_*" }).Name
-foreach ($App in $AppPools) {
-  & $AppCmd set AppPool $App /managedRuntimeVersion:'' /commit:apphost 
-  & $AppCmd set AppPool $App /managedPipelineMode:'Classic' /commit:apphost
-  & $AppCmd set AppPool $App /enable32BitAppOnWin64:'true' /commit:apphost
-  & $AppCmd set AppPool $App /processModel.idleTimeout:'01:00:00' /commit:apphost
-  & $AppCmd set AppPool $App /processModel.pingResponseTime:'00:00:15' /commit:apphost
-  & $AppCmd set AppPool $App /processModel.pingInterval:'00:00:30' /commit:apphost
-  & $AppCmd set AppPool $App /processModel.shutdownTimeLimit:'00:00:30' /commit:apphost
-  & $AppCmd set AppPool $App /processModel.startupTimeLimit:'00:00:30' /commit:apphost
-  & $AppCmd set AppPool $App /startmode:'OnDemand' /commit:apphost
+  & $AppCmd add apppool /name:$site
+  & $AppCmd add site /name:$site /physicalPath:$path /bindings:$Bindings
+  # Adiciona um caracter slash / no final do nome do Site  
+  & $AppCmd set app ($site + "/") /applicationPool:$site
+  
+  # APP POOL CONFIG
+  & $AppCmd set AppPool $Site /managedRuntimeVersion:'' /commit:apphost 
+  & $AppCmd set AppPool $Site /managedPipelineMode:'Classic' /commit:apphost
+  & $AppCmd set AppPool $Site /enable32BitAppOnWin64:'true' /commit:apphost
+  & $AppCmd set AppPool $Site /processModel.idleTimeout:'01:00:00' /commit:apphost
+  & $AppCmd set AppPool $Site /processModel.pingResponseTime:'00:00:15' /commit:apphost
+  & $AppCmd set AppPool $Site /processModel.pingInterval:'00:00:30' /commit:apphost
+  & $AppCmd set AppPool $Site /processModel.shutdownTimeLimit:'00:00:30' /commit:apphost
+  & $AppCmd set AppPool $Site /processModel.startupTimeLimit:'00:00:30' /commit:apphost
+  & $AppCmd set AppPool $Site /startmode:'OnDemand' /commit:apphost
   # Recycling Config
-  & $AppCmd set AppPool $App /-recycling.periodicRestart.time
-  & $AppCmd set AppPool $App /recycling.periodicRestart.time:"00:00:00" /commit:apphost
-  & $AppCmd set AppPool $App /recycling.periodicRestart.memory:'3481600' 
-  & $AppCmd set AppPool $App /recycling.periodicRestart.privateMemory:'2867200' /commit:apphost
+  & $AppCmd set AppPool $Site /-recycling.periodicRestart.time
+  & $AppCmd set AppPool $Site /recycling.periodicRestart.time:"00:00:00" /commit:apphost
+  & $AppCmd set AppPool $Site /recycling.periodicRestart.memory:'3481600' 
+  & $AppCmd set AppPool $Site /recycling.periodicRestart.privateMemory:'2867200' /commit:apphost
 }
 
 # ASP CONFIG 
