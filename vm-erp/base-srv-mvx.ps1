@@ -1,15 +1,14 @@
 Write-Host 'Chocolatey Steps'  
 Install-PackageProvider Nuget -ForceBootstrap -Force -Confirm:$false
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-choco feature disable -n=showDownloadProgress
-choco feature enable -n=allowGlobalConfirmation
-choco install notepadplusplus -y --force --force-dependencies
-choco install 7zip -y --force --force-dependencies
-choco install sql2012.nativeclient -y --ignore-checksums
-choco install debugdiagnostic -y --ignore-checksums
-choco install sysinternals -y --ignore-checksums
-choco install procdump -y --ignore-checksums
-choco install logparser -y --ignore-checksums
+# Choco Features
+choco feature disable -n=showDownloadProgress; choco feature enable -n=allowGlobalConfirmation
+# Install Apps with Choco
+choco install notepadplusplus -y --force --force-dependencies --ignore-checksums ; choco install 7zip -y --force --force-dependencies --ignore-checksums
+# Install MS SQL Driver Client
+choco install sql2012.nativeclient -y --ignore-checksums 
+# sysinternals, procdump, logparser
+choco install sysinternals -y --ignore-checksums ; choco install procdump -y --ignore-checksums ; choco install logparser -y --ignore-checksums ; choco install debugdiagnostic -y --ignore-checksums
 
 write-Host 'UAC - Disabled'
 New-ItemProperty -Path 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\policies\\system' -Name 'EnableLUA' -PropertyType DWord -Value 0 -Force
