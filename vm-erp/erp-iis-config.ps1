@@ -11,12 +11,11 @@ new-item -type Directory /upload
 
 # Cria sites 
 $siteList = @(
-    [pscustomobject]@{Name = 'ERP_PROD_1' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn04.microvix.com.br'  }
-    [pscustomobject]@{Name = 'ERP_PROD_2' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn02.microvix.com.br'  }
-    [pscustomobject]@{Name = 'ERP_PROD_3' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn03.microvix.com.br'  }
-    [pscustomobject]@{Name = 'ERP_RC_1'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:lixn-rc.microvix.com.br' }
-)
-  
+  [pscustomobject]@{Name = 'ERP_PROD_1' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn04.microvix.com.br'  }
+  [pscustomobject]@{Name = 'ERP_PROD_2' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn02.microvix.com.br'  }
+  [pscustomobject]@{Name = 'ERP_PROD_3' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn03.microvix.com.br'  }
+  [pscustomobject]@{Name = 'ERP_RC_1'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:lixn-rc.microvix.com.br' }
+) 
 # Configure Site ERP SLOT 
 Foreach ($item in $siteList) {
   $site = ($item).Name
@@ -37,7 +36,9 @@ Foreach ($item in $siteList) {
   & $AppCmd set AppPool $Site /processModel.pingInterval:'00:00:30' /commit:apphost
   & $AppCmd set AppPool $Site /processModel.shutdownTimeLimit:'00:00:30' /commit:apphost
   & $AppCmd set AppPool $Site /processModel.startupTimeLimit:'00:00:30' /commit:apphost
+  & $AppCmd set AppPool $Site /processModel.LoadUserProfile:'true' /commit:apphost
   & $AppCmd set AppPool $Site /startmode:'OnDemand' /commit:apphost
+
   # Recycling Config
   & $AppCmd set AppPool $Site /-recycling.periodicRestart.time
   & $AppCmd set AppPool $Site /recycling.periodicRestart.time:"00:00:00" /commit:apphost
@@ -53,16 +54,16 @@ Foreach ($item in $siteList) {
 # TrackingID MS 2208240040004733 - MTA must be disabled 
 & $AppCmd  set config -section:system.webServer/asp /comPlus.executeInMta:'False' /commit:apphost 
 
- & $AppCmd set config -section:system.webServer/asp /Session.timeOut:'00:20:00' /commit:apphost 
- & $AppCmd set config -section:system.webServer/asp /Limits.bufferingLimit:'10094304' /commit:apphost 
- & $AppCmd set config -section:system.webServer/asp /Limits.maxRequestEntityAllowed:'2147483647' /commit:apphost 
- & $AppCmd set config -section:system.webServer/asp /Limits.processorThreadMax:'250' /commit:apphost 
- & $AppCmd set config -section:system.webServer/asp /Limits.scriptTimeout:'00:10:00' /commit:apphost 
- & $AppCmd set config -section:system.webServer/asp /cache.scriptFileCacheSize:'0' /commit:apphost 
- & $AppCmd set config -section:system.webServer/asp /cache.maxDiskTemplateCacheFiles:'0' /commit:apphost 
- & $AppCmd set config -section:system.webServer/asp /cache.scriptEngineCacheMax:'0' /commit:apphost 
- & $AppCmd set config -section:system.webServer/asp /cache.enableTypelibCache:'True' /commit:apphost 
- & $AppCmd set config -section:system.webServer/asp /cache.diskTemplateCacheDirectory:'c:\inetpub\temp\ASP Compiled Templates' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /Session.timeOut:'00:20:00' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /Limits.bufferingLimit:'10094304' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /Limits.maxRequestEntityAllowed:'2147483647' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /Limits.processorThreadMax:'250' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /Limits.scriptTimeout:'00:10:00' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /cache.scriptFileCacheSize:'0' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /cache.maxDiskTemplateCacheFiles:'0' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /cache.scriptEngineCacheMax:'0' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /cache.enableTypelibCache:'True' /commit:apphost 
+& $AppCmd set config -section:system.webServer/asp /cache.diskTemplateCacheDirectory:'c:\inetpub\temp\ASP Compiled Templates' /commit:apphost 
 
 # Dynamic compression disabled
 & $AppCmd set config -section:system.webServer/urlCompression /doDynamicCompression:'false' /commit:apphost 
