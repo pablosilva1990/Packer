@@ -40,7 +40,7 @@ steps:
       targetType: 'inline'
       script: |
             packer build -force  \
-              -var "managed_image_prefix=$(MANAGED_IMAGE_PREFIX)_$(NAME)" \
+              -var "managed_image_prefix=$(MANAGED_IMAGE_PREFIX)_$(Build.BuildNumber)" \
               -var "gallery_name=$(AZUREGALLERYNAME)" \
               -var "gallery_managed_image_prefix=$(AZURE_GALLERY_MANAGEDIMAGE_PREFIX)" \
               -var "managed_image_resource_group_name=$(AZURE_RESOURCE_GROUP_TEMPLATE)" \
