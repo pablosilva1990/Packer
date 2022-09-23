@@ -16,6 +16,7 @@ $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
 & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers'].denyStrings.[string='python']"
 & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers'].denyStrings.[string='got']"
 & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers'].denyStrings.[string='rest-client']"
+& $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers'].denyStrings.[string='mechanize']"
 
 # sysdatabases
 & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sysdatabases',scanUrl='True',scanQueryString='True',scanAllRaw='False']" /commit:apphost

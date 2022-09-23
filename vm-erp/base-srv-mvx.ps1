@@ -45,6 +45,8 @@ Install-WindowsFeature `
 # TCP/IP clients ports range
 netsh int ipv4 set dynamicport tcp start=10000 num=54000
 
+# Install WebDeploy
+choco install webdeploy -y --ignore-checksums 
 
 # Default directory Linx
 new-item -type Directory /linx
@@ -69,7 +71,7 @@ New-ItemProperty -Path "HKLM:System\CurrentControlSet\Services\InetInfo\Paramete
 
 # Remove Defaults
 $AppPoolDft = @('Classic .NET AppPool', '.NET v2.0 Classic', '.NET v2.0', '.NET v4.5 Classic', '.NET v4.5', 'DefaultAppPool')
-foreach ($a in $AppPoolDft){
+foreach ($a in $AppPoolDft) {
     & $AppCmd  delete AppPool $a
 }
 
