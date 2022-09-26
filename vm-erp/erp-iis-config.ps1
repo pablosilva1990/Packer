@@ -11,10 +11,10 @@ new-item -type Directory /upload
 
 # Cria sites 
 $siteList = @(
-  [pscustomobject]@{Name = 'ERP_PROD_1' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn04.microvix.com.br'  }
-  [pscustomobject]@{Name = 'ERP_PROD_2' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn02.microvix.com.br'  }
-  [pscustomobject]@{Name = 'ERP_PROD_3' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:lixn03.microvix.com.br'  }
-  [pscustomobject]@{Name = 'ERP_RC_1'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:lixn-rc.microvix.com.br' }
+  [pscustomobject]@{Name = 'ERP_PROD_1' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx04.microvix.com.br' }
+  [pscustomobject]@{Name = 'ERP_PROD_2' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx02.microvix.com.br' }
+  [pscustomobject]@{Name = 'ERP_PROD_3' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx03.microvix.com.br' }
+  [pscustomobject]@{Name = 'ERP_RC_1'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:linx-rc.microvix.com.br' }
 ) 
 # Configure Site ERP SLOT 
 Foreach ($item in $siteList) {
@@ -26,6 +26,7 @@ Foreach ($item in $siteList) {
   & $AppCmd add site /name:$site /physicalPath:$path /bindings:$Bindings
   # Adiciona um caracter slash / no final do nome do Site  
   & $AppCmd set app ($site + "/") /applicationPool:$site
+  Set-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -filter "system.applicationHost/sites/site[@name=`"$site`"]/applicationDefaults" -name "preloadEnabled" -value "True"
   
   # APP POOL CONFIG
   & $AppCmd set AppPool $Site /managedRuntimeVersion:'' /commit:apphost 
@@ -38,6 +39,8 @@ Foreach ($item in $siteList) {
   & $AppCmd set AppPool $Site /processModel.startupTimeLimit:'00:00:30' /commit:apphost
   & $AppCmd set AppPool $Site /processModel.LoadUserProfile:'true' /commit:apphost
   & $AppCmd set AppPool $Site /startmode:'OnDemand' /commit:apphost
+
+
 
   # Recycling Config
   & $AppCmd set AppPool $Site /-recycling.periodicRestart.time
