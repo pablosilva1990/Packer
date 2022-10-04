@@ -15,7 +15,7 @@ variables:
 #- name: WORK_PATH
 
 pool: 
-  vmImage: 'ubuntu-latest'
+  name: DevOps-VMSS
 
 steps:
 
