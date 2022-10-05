@@ -1,20 +1,34 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+Cada pasta dentro do projeto é referente a uma imagem que foi criada com o Packer.
+
+A pasta .azdevops contém o continuos integration do Packer, nós usamos este arquivo para criar a pipeline no Azure Devops.
 
 # Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
-
+1.	Software dependencies
+* Dentro de cada pasta de imagens criadas precisa ter um arquivo *.pkr.hcl para que o Packer "leia" este arquivo e provisione com os scripts setados neste arquivo.
+  * você pode usar um arquivo desse como base e editar para o seu uso.
+* A pipeline pode ser criada com o arquivo "ci-packer" que está dentro da pasta .azdevops.
+* O Agent Pool que irá executar precisa ter instalado:
+  * Git
+  * Packer
+3.	Criação da Pipeline
+* Selecione o arquivo da pasta .azdevops
+* Coloque as seguintes variáveis na Pipeline:
+    * WORK_PATH: Pasta que você criou no repositório
+    * MANAGED_IMAGE_PREFIX: 
+    * AZUREGALLERYNAME: "sharedgallery_microvix_production"
+    * AZURE_GALLERY_MANAGEDIMAGE_PREFIX: 
+    * AZURE_RESOURCE_GROUP_TEMPLATE: "mvxprd-templates"
+    * CLIENT_ID:
+    * CLIENT_SECRET:
+    * SUBSCRIPTION_ID:
+    * TENANT_ID:
 # Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+Para fazer o build da imagem você precisa rodar a pipeline.
 
 # Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
-
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+1. Faça o clone do repositório.
+2. Crie uma Branch.
+3. Crie uma pasta do seu projeto.
+4. Configure os arquivos necessários para criação da imagem.
+5. Faça a pull request para a branch Main.

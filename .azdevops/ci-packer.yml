@@ -15,7 +15,8 @@ variables:
 #- name: WORK_PATH
 
 pool: 
-  name: DevOps-VMSS
+  #name: DevOps-VMSS
+  vmImage: ubuntu-latest
 
 steps:
 
@@ -29,14 +30,14 @@ steps:
 
   - task: Bash@3
     inputs:
-      workingDirectory: vm-erp
+      workingDirectory: $(WORK_PATH)
       targetType: 'inline'
       script: |
         ls -lR
 
   - task: Bash@3
     inputs:
-      workingDirectory:  vm-erp
+      workingDirectory:  $(WORK_PATH)
       targetType: 'inline'
       script: |
             packer build -force  \
