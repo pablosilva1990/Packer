@@ -34,6 +34,53 @@ param (
 import-module WebAdministration
 $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
 
+function start-WebEnvironmentBuilder {
+  param (
+    [string]$appName,
+    [string]$path,
+
+    [bool]$CustomIdentity = $false,
+    [string]$CustomIdentityLogin,
+    [string]$CustomIdentityPassowrd,
+
+    [bool]$appPool32Bits = $false
+
+  )
+
+
+  #Dynamic variables
+  $Bindings = "http/:80:${appName}"
+
+  if ((Test-Path "IIS:\AppPools\$appName") -eq $False) {
+    # Application pool doesn't exist, create it...
+    # PowerShell: New-Item -Path "IIS:\AppPools" -Name $appName -Type AppPool
+    & $AppCmd add apppool /name:$appName
+  }
+ 
+  if ((Test-Path "IIS:\sites\$appName") -eq $False) {
+    # Site doesn't exist, create it...
+    # PowerShell New-WebSite -Name $webSite -Port 80 -HostHeader $dnsFqdn -PhysicalPath $pathWebSite
+    & $AppCmd add site /name:$appName /physicalPath:$path /bindings:$Bindings
+  }
+
+  # Adiciona um caracter slash / no final do nome do Site  
+  & $AppCmd set app ($appName + "/") /applicationPool:$appName
+  
+  if ($Customidentity) {
+    $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
+    Set-ItemProperty -Path "IIS:\AppPools\$appPool" -name "processModel" -value $identity
+  }
+
+  # Application Pool Config 
+  if ($appPool32Bits) {
+    Set-ItemProperty -Path "IIS:\AppPools\My Pool" -name "enable32BitAppOnWin64" -value $true
+  }
+  
+
+  
+}
+
+
 # Remove Defaults
 if ($PurgeDefaults) {
   
@@ -107,24 +154,21 @@ $allApps = & {
 
 Write-Output $allApps
 
-
 if ($isDev) {
+  # Create  site with main server name
+  $BindingPrimary = "${hostname}.${Domain}"
+  start-WebEnvironmentBuilder -projectName "${hostname}" -path "${path}"-bindings "${BindingPrimary}" -CustomIdentity $false 
 
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
     [string] $appName = ($item).Bindings
     [string] $path = "${SitePath}\${projectName}\"
+    $siteBinding = "{hostname}-${projectName}-${envName}.${Domain}"
 
-    $Bindings = "${appName}"
+    start-WebEnvironmentBuilder -projectName "${projectName}" -path "${path}" -bindings "${siteBinding}" -CustomIdentity $false 
+    
 
   }
-
-  $siteList = @(
-    [pscustomobject]@{Name = "${hostname}" ; Bindings = "${hostname}-.${Domain}" }
-    [pscustomobject]@{Name = "vendafacil" ; Bindings = "{hostname}-vendafacil-${envName}.${Domain}" }
-    [pscustomobject]@{Name = "estoque" ; Bindings = "${hostname}-estoque-${envName}.${Domain}" }
-    [pscustomobject]@{Name = "wms" ; Bindings = "${hostname}-wms-${envName}.${Domain}" }
-  ) 
 } 
 else {
   $siteList = @(
@@ -138,68 +182,5 @@ else {
   ) 
 }
 
-# defining Default Values 
-$sitePath = "${pathWebSite}\${envName}"
-write-Output "site path: ${sitePath}"
 
 
-Foreach ($item in $siteList) {
-  [string] $projectName = ($item).Name
-  [string] $path = "${SitePath}\$projectName\"
-  [string] $appName = ($item).Bindings
-
-  #Dynamic variables
-  $Bindings = "http/:80:${appName}"
-
-  if ((Test-Path "IIS:\AppPools\$appName") -eq $False) {
-    # Application pool doesn't exist, create it...
-    #New-Item -Path "IIS:\AppPools" -Name $appName -Type AppPool
-    & $AppCmd add apppool /name:$appName
-  }
- 
-  if ((Test-Path "IIS:\sites\$appName") -eq $False) {
-    # Site doesn't exist, create it...
-    & $AppCmd add site /name:$appName /physicalPath:$path /bindings:$Bindings
-  }
-
-  # Adiciona um caracter slash / no final do nome do Site  
-  & $AppCmd set app ($appName + "/") /applicationPool:$appName
-  
-
-
-  ##################### END BASIC #################################
-
-  break 
-
-
-  # Não usar o código abaixo
-
-
-
-  $webSite = "teste3"
-  $appPool = "testeAppPool2"
-  $dnsFqdn = "website.local.net"
-  $pathWebSite = "c:\temp\"
-
-
-  $identity = @{ identitytype = "SpecificUser"; username = "My Username"; password = "My Password" }
-  
-
-  if ((Test-Path "IIS:\AppPools\$appPool") -eq $False) {
-    # Application pool does not exist, create it...
-    New-Item -Path "IIS:\AppPools" -Name $appPool -Type AppPool
-  }
-  Set-ItemProperty -Path "IIS:\AppPools\$appPool" -name "processModel" -value $identity
-  Set-ItemProperty -Path "IIS:\AppPools\My Pool" -name "enable32BitAppOnWin64" -value $true
-
-  if ((Test-Path "IIS:\Sites\$webSite") -eq $False) {
-    # Site does not exist, create it...
-    New-WebSite -Name $webSite -Port 80 -HostHeader $dnsFqdn -PhysicalPath $pathWebSite
-  }
-
-  
-
-  if ((Test-Path "IIS:\Sites\$webSite\MyApp") -eq $False) {
-    # App/virtual directory does not exist, create it...
-    # ...
-  }
