@@ -24,10 +24,11 @@ param (
   [string] $HostName = "expdevops",
   [string] $envName = "aceitacao",
   [string] $Domain = "microvix.com.br",
+  [string] $logsPath = "c:\site\logs",
   [bool] $UseCustomUsername = $false,
   [bool] $isDev = $false,
   [bool] $PurgeDefaults = $true,
-  [bool] $setWebServerDefaults = $true 
+  [bool] $setWebServerDefaults = $true
 
 )
 import-module WebAdministration
@@ -54,28 +55,70 @@ if ($setWebServerDefaults) {
   & $AppCmd unlock config /section:system.webServer/handlers
   & $AppCmd unlock config /section:system.webServer/modules
   & $AppCmd unlock config /section:system.webServer/asp
+
+  if (test-path -path $logsPath = $false) {
+    new-item -type Directory -path $logsPath
+  }
+
+  # SET LOGS CONFIG
+  $settings = @{ logFormat = "W3c"; enabled = $true; directory = $logsPath; period = "Hourly"; }
+  Set-ItemProperty "IIS:\Sites\$webSite" -name "logFile" -value $settings
 }
 
-
-$microvixSiteLists = @(
-  [pscustomobject]@{Name = "crm-app" ; }
-  [pscustomobject]@{Name = "crm-api" ; }
-  [pscustomobject]@{Name = "vendafacil" ; }
-  [pscustomobject]@{Name = "estoque" ; }
-  [pscustomobject]@{Name = "wms" ; }
-  [pscustomobject]@{Name = "hubvaletrocas" ; }
-  [pscustomobject]@{Name = "agendaservicos-app" ; }
-  [pscustomobject]@{Name = "implantar" ; }
-  [pscustomobject]@{Name = "erp-app" ; }
-  [pscustomobject]@{Name = "recuperadorcupomfiscal" ; }
-  [pscustomobject]@{Name = "" ; }
-  [pscustomobject]@{Name = "" ; }
-  [pscustomobject]@{Name = "" ; }
+$microvixSites = @(
+  [pscustomobject]@{Name = "crm-app" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "crm-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "vendafacil" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "estoque" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "wms" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "hubvaletrocas" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "agendaservicos-app" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "implantar" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "erp-app" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "nfe4-app" ; is32bits = "false" ; adminRights = "true" }
 
 ) 
 
+$microvixAPIs = @(
+  [pscustomobject]@{Name = "erpadmin" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "crm-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "otico-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "lgpdterceiros-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "agendaservicos-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "cobranca-linx-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "cobranca-extrator-catalogo-digital-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "fastpass-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "faturamentoservicosterceiros-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "imagensprodutos-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "relatorio-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "servicos-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "terceiros-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "giftcard-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "erpcore-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "nfe-api" ; is32bits = "false" ; adminRights = "true" }
+
+)
+# merge lists
+$allApps = & { 
+  $microvixSites
+  $microvixAPIs
+}
+
+Write-Output $allApps
+
 
 if ($isDev) {
+
+  foreach ($item in $allApps) {
+    [string] $projectName = ($item).Name
+    [string] $appName = ($item).Bindings
+    [string] $path = "${SitePath}\${projectName}\"
+
+    $Bindings = "${appName}"
+
+  }
+
   $siteList = @(
     [pscustomobject]@{Name = "${hostname}" ; Bindings = "${hostname}-.${Domain}" }
     [pscustomobject]@{Name = "vendafacil" ; Bindings = "{hostname}-vendafacil-${envName}.${Domain}" }
@@ -83,7 +126,6 @@ if ($isDev) {
     [pscustomobject]@{Name = "wms" ; Bindings = "${hostname}-wms-${envName}.${Domain}" }
   ) 
 } 
-
 else {
   $siteList = @(
     [pscustomobject]@{Name = "crm" ; Bindings = "$($sitelist[0].name)-${envName}.${Domain}" }
@@ -93,14 +135,12 @@ else {
     [pscustomobject]@{Name = "hubvaletrocas" ; Bindings = "$($sitelist[4].name)-${envName}.${Domain}" }
     [pscustomobject]@{Name = "agendaservicos" ; Bindings = "$($sitelist[5].name)-${envName}.${Domain}" }
     [pscustomobject]@{Name = "implantar" ; Bindings = "$($sitelist[6].name)-${envName}.${Domain}" }
-
   ) 
 }
 
 # defining Default Values 
 $sitePath = "${pathWebSite}\${envName}"
 write-Output "site path: ${sitePath}"
-
 
 
 Foreach ($item in $siteList) {
@@ -127,12 +167,7 @@ Foreach ($item in $siteList) {
   
 
 
-
-
   ##################### END BASIC #################################
-
-
-
 
   break 
 
@@ -145,10 +180,10 @@ Foreach ($item in $siteList) {
   $appPool = "testeAppPool2"
   $dnsFqdn = "website.local.net"
   $pathWebSite = "c:\temp\"
-  $pathLogs = "c:\site\logs"
+
 
   $identity = @{ identitytype = "SpecificUser"; username = "My Username"; password = "My Password" }
-  $settings = @{ logFormat = "W3c"; enabled = $true; directory = $pathLogs; period = "Daily"; }
+  
 
   if ((Test-Path "IIS:\AppPools\$appPool") -eq $False) {
     # Application pool does not exist, create it...
@@ -162,7 +197,7 @@ Foreach ($item in $siteList) {
     New-WebSite -Name $webSite -Port 80 -HostHeader $dnsFqdn -PhysicalPath $pathWebSite
   }
 
-  Set-ItemProperty "IIS:\Sites\$webSite" -name "logFile" -value $settings
+  
 
   if ((Test-Path "IIS:\Sites\$webSite\MyApp") -eq $False) {
     # App/virtual directory does not exist, create it...
