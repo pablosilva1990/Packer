@@ -34,9 +34,16 @@ param (
 import-module WebAdministration
 $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
 
+# Predefined Values
+$envName = "aceitacao"
+$Domain = "microvix.com.br"
+$isDev = $true
+$envName = "gustavo"
+$PurgeDefaults = $false
+
 function start-WebEnvironmentBuilder {
   param (
-    [string]$appName,
+    [string]$siteName,
     [string]$path,
 
     [bool]$CustomIdentity = $false,
@@ -46,25 +53,29 @@ function start-WebEnvironmentBuilder {
     [bool]$appPool32Bits = $false
 
   )
-
-
+  import-module WebAdministration
+  write-output "entrou na function"
   #Dynamic variables
-  $Bindings = "http/:80:${appName}"
+  $Bindings = "http/:80:${siteName}"
 
-  if ((Test-Path "IIS:\AppPools\$appName") -eq $False) {
+
+  if ((Test-Path "IIS:\AppPools\$siteName") -eq $False) {
     # Application pool doesn't exist, create it...
-    # PowerShell: New-Item -Path "IIS:\AppPools" -Name $appName -Type AppPool
-    & $AppCmd add apppool /name:$appName
+    # PowerShell: New-Item -Path "IIS:\AppPools" -Name $siteName -Type AppPool
+    write-output "entrou na function 2"
+    & $AppCmd add apppool /name:$siteName
   }
  
-  if ((Test-Path "IIS:\sites\$appName") -eq $False) {
+  if ((Test-Path "IIS:\sites\$siteName") -eq $False) {
     # Site doesn't exist, create it...
-    # PowerShell New-WebSite -Name $webSite -Port 80 -HostHeader $dnsFqdn -PhysicalPath $pathWebSite
-    & $AppCmd add site /name:$appName /physicalPath:$path /bindings:$Bindings
+    # PowerShell New-WebSite -Name $siteName -Port 80 -HostHeader $dnsFqdn -PhysicalPath $path
+    write-output "entrou na function 3"
+    & $AppCmd add site /name:$siteName /physicalPath:$path /bindings:$Bindings
   }
 
-  # Adiciona um caracter slash / no final do nome do Site  
-  & $AppCmd set app ($appName + "/") /applicationPool:$appName
+  # Adiciona um caracter slash / no final do nome do Site 
+  $appPoolCombine = "${siteName}/"
+  & $AppCmd set app "${appPoolCombine}" /applicationPool:$siteName
   
   if ($Customidentity) {
     $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
@@ -73,11 +84,17 @@ function start-WebEnvironmentBuilder {
 
   # Application Pool Config 
   if ($appPool32Bits) {
-    Set-ItemProperty -Path "IIS:\AppPools\My Pool" -name "enable32BitAppOnWin64" -value $true
+    Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "enable32BitAppOnWin64" -value $true
+  }
+  else {
+    Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "enable32BitAppOnWin64" -value $false
   }
   
+  ## SET LOGS CONFIG
+  $LogValues = "Date,Time,ClientIP,UserName,SiteName,ComputerName,ServerIP,Method,UriStem,UriQuery,HttpStatus,Win32Status,BytesSent,BytesRecv,TimeTaken,ServerPort,UserAgent,Cookie,Referer,ProtocolVersion,Host,HttpSubStatus" 
+  $settings = @{ logFormat = "W3c"; enabled = $true; directory = $logsPath; period = "Hourly" ; localTimeRollover = "True" ; logExtFileFlags = "${logValues}" }
+  Set-ItemProperty "IIS:\Sites\$siteName" -name "logFile" -value $settings
 
-  
 }
 
 
@@ -103,13 +120,11 @@ if ($setWebServerDefaults) {
   & $AppCmd unlock config /section:system.webServer/modules
   & $AppCmd unlock config /section:system.webServer/asp
 
-  if (test-path -path $logsPath = $false) {
+  $testLogPath = test-path -path $logsPath
+  If ($testLogPath -eq $false) {
     new-item -type Directory -path $logsPath
   }
 
-  # SET LOGS CONFIG
-  $settings = @{ logFormat = "W3c"; enabled = $true; directory = $logsPath; period = "Hourly"; }
-  Set-ItemProperty "IIS:\Sites\$webSite" -name "logFile" -value $settings
 }
 
 $microvixSites = @(
@@ -146,40 +161,48 @@ $microvixAPIs = @(
   [pscustomobject]@{Name = "nfe-api" ; is32bits = "false" ; adminRights = "true" }
 
 )
-# merge lists
-$allApps = & { 
-  $microvixSites
-  $microvixAPIs
-}
 
-Write-Output $allApps
+#Write-Output $allApps
 
 if ($isDev) {
+  # merge lists - When is Dev. The script will create a base site and all the webapps
+  $allApps = & { 
+    $microvixSites
+    #$microvixAPIs
+  }
+
   # Create  site with main server name
   $BindingPrimary = "${hostname}.${Domain}"
-  start-WebEnvironmentBuilder -projectName "${hostname}" -path "${path}"-bindings "${BindingPrimary}" -CustomIdentity $false 
+  start-WebEnvironmentBuilder -path "${path}" -siteName "${BindingPrimary}" 
 
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
-    [string] $appName = ($item).Bindings
     [string] $path = "${SitePath}\${projectName}\"
-    $siteBinding = "{hostname}-${projectName}-${envName}.${Domain}"
+    $siteBinding = "${hostname}-${projectName}-${envName}.${Domain}"
 
-    start-WebEnvironmentBuilder -projectName "${projectName}" -path "${path}" -bindings "${siteBinding}" -CustomIdentity $false 
+    Write-Output $projectName
+    Write-Output $path
+    write-output $siteBinding
+
+    start-WebEnvironmentBuilder -path "${path}" -siteName "${siteBinding}" 
     
-
   }
 } 
 else {
-  $siteList = @(
-    [pscustomobject]@{Name = "crm" ; Bindings = "$($sitelist[0].name)-${envName}.${Domain}" }
-    [pscustomobject]@{Name = "vendafacil" ; Bindings = "$($sitelist[1].name)-${envName}.${Domain}" }
-    [pscustomobject]@{Name = "estoque" ; Bindings = "$($sitelist[2].name)-${envName}.${Domain}" }
-    [pscustomobject]@{Name = "wms" ; Bindings = "$($sitelist[3].name)-${envName}.${Domain}" }
-    [pscustomobject]@{Name = "hubvaletrocas" ; Bindings = "$($sitelist[4].name)-${envName}.${Domain}" }
-    [pscustomobject]@{Name = "agendaservicos" ; Bindings = "$($sitelist[5].name)-${envName}.${Domain}" }
-    [pscustomobject]@{Name = "implantar" ; Bindings = "$($sitelist[6].name)-${envName}.${Domain}" }
-  ) 
+
+  # merge lists - When is not Dev. The script will create all sites needed
+  $allApps = & { 
+    $microvixSites
+    $microvixAPIs
+  }
+
+
+  [string] $projectName = ($item).Name
+  [string] $path = "${SitePath}\${projectName}\"
+  $siteBinding = "${projectName}-${envName}.${Domain}"
+
+  start-WebEnvironmentBuilder -projectName "${projectName}" -path "${path}" -bindings "${siteBinding}" -CustomIdentity $false 
+
 }
 
 
