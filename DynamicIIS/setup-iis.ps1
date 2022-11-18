@@ -28,7 +28,8 @@ param (
   [bool] $UseCustomUsername = $false,
   [bool] $isDev = $false,
   [bool] $PurgeDefaults = $true,
-  [bool] $setWebServerDefaults = $true
+  [bool] $setWebServerDefaults = $true,
+  [bool] $purgeSites = $false
 
 )
 import-module WebAdministration
@@ -40,6 +41,8 @@ $Domain = "microvix.com.br"
 $isDev = $true
 $envName = "gustavo"
 $PurgeDefaults = $false
+$pathWebSite = "c:\linx"
+$purgeSites = $true
 
 function start-WebEnvironmentBuilder {
   param (
@@ -60,20 +63,18 @@ function start-WebEnvironmentBuilder {
 
 
   if ((Test-Path "IIS:\AppPools\$siteName") -eq $False) {
-    # Application pool doesn't exist, create it...
+    ## Application pool doesn't exist, create it...
     # PowerShell: New-Item -Path "IIS:\AppPools" -Name $siteName -Type AppPool
-    write-output "entrou na function 2"
     & $AppCmd add apppool /name:$siteName
   }
  
   if ((Test-Path "IIS:\sites\$siteName") -eq $False) {
     # Site doesn't exist, create it...
     # PowerShell New-WebSite -Name $siteName -Port 80 -HostHeader $dnsFqdn -PhysicalPath $path
-    write-output "entrou na function 3"
     & $AppCmd add site /name:$siteName /physicalPath:$path /bindings:$Bindings
   }
 
-  # Adiciona um caracter slash / no final do nome do Site 
+  ## Adiciona um caracter slash / no final do nome do Site 
   $appPoolCombine = "${siteName}/"
   & $AppCmd set app "${appPoolCombine}" /applicationPool:$siteName
   
@@ -82,7 +83,7 @@ function start-WebEnvironmentBuilder {
     Set-ItemProperty -Path "IIS:\AppPools\$appPool" -name "processModel" -value $identity
   }
 
-  # Application Pool Config 
+  ## Application Pool Config 
   if ($appPool32Bits) {
     Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "enable32BitAppOnWin64" -value $true
   }
@@ -177,7 +178,7 @@ if ($isDev) {
 
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
-    [string] $path = "${SitePath}\${projectName}\"
+    [string] $path = "${pathWebSite}\${projectName}\"
     $siteBinding = "${hostname}-${projectName}-${envName}.${Domain}"
 
     Write-Output $projectName
@@ -189,16 +190,14 @@ if ($isDev) {
   }
 } 
 else {
-
   # merge lists - When is not Dev. The script will create all sites needed
   $allApps = & { 
     $microvixSites
     $microvixAPIs
   }
 
-
   [string] $projectName = ($item).Name
-  [string] $path = "${SitePath}\${projectName}\"
+  [string] $path = "${pathWebSite}\${projectName}\"
   $siteBinding = "${projectName}-${envName}.${Domain}"
 
   start-WebEnvironmentBuilder -projectName "${projectName}" -path "${path}" -bindings "${siteBinding}" -CustomIdentity $false 
