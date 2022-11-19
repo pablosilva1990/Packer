@@ -32,16 +32,6 @@ param (
   [bool] $purgeSites = $false
 
 )
-import-module WebAdministration
-$AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
-
-# Predefined Values
-$envName = "aceitacao"
-$Domain = "microvix.com.br"
-$isDev = $true
-$envName = "gustavo"
-$pathWebSite = "c:\linx"
-
 
 function start-WebEnvironmentBuilder {
   param (
@@ -56,6 +46,8 @@ function start-WebEnvironmentBuilder {
 
     # App Pool
     [bool]$appPool32Bits = $false,
+    [string]$dotnetCLR = "v4",
+    [string]$ManagedPipelineMode = "Integrated",
 
     # Config - Site
     [bool]$setWebServerDefaults = $true,
@@ -64,19 +56,33 @@ function start-WebEnvironmentBuilder {
 
     # Purge Parametsr
     [bool]$PurgeDefaults = $true,
-    [bool]$PurgeSites = $true
+    [bool]$PurgeSites = $false,
+    [bool]$PurgeSiteFolder = $false
   )
+
   import-module WebAdministration
+  $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
 
   #Dynamic variables
   $Bindings = "http/:80:${siteName}"
 
   # Purge Site
   if ($purgeSites) {
+
+    Write-Output "###################################################################"
+    Write-Output "###########################  DELETE   #############################"
+    Write-Output "###########################  ACTION   #############################"
+    Write-Output "########################### TRIGGERED #############################"
+    Write-Output "###################################################################"
+
     if ((Test-Path "IIS:\sites\$siteName") -eq $true) {
       # Delete site "Default Web Site"
-      write-output "Purging site ${siteName}"
-      & $AppCmd delete site "${siteName}" | Out-Null
+      write-output "Purging site ${siteName}" 
+      & $AppCmd delete site "${siteName}" | Out-Null 
+      if ($PurgeSiteFolder) {
+        write-output "Deleting site path ${sitePath}"
+        remove-item -Path $sitePath -Force -Confirm:$false -Recurse
+      }
     }
    
     if ((Test-Path "IIS:\AppPools\$siteName") -eq $true) {
@@ -84,6 +90,11 @@ function start-WebEnvironmentBuilder {
       write-output "Purging AppPool ${siteName}"
       & $AppCmd  delete AppPool "${siteName}" | Out-Null
     }
+    Write-Output "###################################################################"
+    Write-Output "###########################  DELETE   #############################"
+    Write-Output "###########################  ACTION   #############################"
+    Write-Output "###########################   END     #############################"
+    Write-Output "###################################################################"
   }
 
   # Remove Defaults
@@ -111,14 +122,13 @@ function start-WebEnvironmentBuilder {
   if ((Test-Path "IIS:\AppPools\$siteName") -eq $False) {
     ## Application pool doesn't exist, create it...
     # PowerShell: New-Item -Path "IIS:\AppPools" -Name $siteName -Type AppPool
-    & $AppCmd add apppool /name:$siteName | Out-Null
+    & $AppCmd add apppool /name:$siteName /managedRuntimeVersion:$dotnetCLR /managedPipelineMode:$ManagedPipelineMode | Out-Null
 
     # Recycling Defaults
     & $AppCmd set AppPool $siteName /-recycling.periodicRestart.time | Out-Null
     & $AppCmd set AppPool $siteName /recycling.periodicRestart.time:"00:00:00" /commit:apphost | Out-Null
-
   }
- 
+  
   if ((Test-Path "IIS:\sites\$siteName") -eq $False) {
     # Site doesn't exist, create it...
     # PowerShell New-WebSite -Name $siteName -Port 80 -HostHeader $dnsFqdn -PhysicalPath $sitePath
@@ -211,41 +221,45 @@ function start-WebEnvironmentBuilder {
 
 }
 
-
-
+# Predefined Values
+$envName = "aceitacao"
+$Domain = "microvix.com.br"
+$isDev = $true
+$envName = "gustavo"
+$pathWebSite = "c:\linx"
 
 $microvixSites = @(
-  [pscustomobject]@{Name = "crm" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "vendafacil" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "erp-mvx" ; is32bits = "true" ; adminRights = "true" }
-  [pscustomobject]@{Name = "erp-login" ; is32bits = "true" ; adminRights = "true" }
-  #[pscustomobject]@{Name = "estoque" ; is32bits = "false" ; adminRights = "false" }
-  #[pscustomobject]@{Name = "wms" ; is32bits = "false" ; adminRights = "false" }
-  #[pscustomobject]@{Name = "hubvaletrocas" ; is32bits = "false" ; adminRights = "false" }
-  #[pscustomobject]@{Name = "agendaservicos" ; is32bits = "false" ; adminRights = "false" }
-  #[pscustomobject]@{Name = "implantar" ; is32bits = "false" ; adminRights = "false" }
-  #[pscustomobject]@{Name = "erp-webapp" ; is32bits = "false" ; adminRights = "false" }
-  #[pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = "false" ; adminRights = "false" }
-  #[pscustomobject]@{Name = "nfe4" ; is32bits = "false" ; adminRights = "true" }
+  [pscustomobject]@{Name = "crm" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integraded" ; CLR = "v4" ; }
+  [pscustomobject]@{Name = "vendafacil" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integraded" ; CLR = "" ; }
+  [pscustomobject]@{Name = "erp-mvx" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "v4" ; }
+  [pscustomobject]@{Name = "erp-login" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "" ; }
+  #[pscustomobject]@{Name = "estoque" ; is32bits = $false ; adminRights = $false ; CLR = "" ;  }
+  #[pscustomobject]@{Name = "wms" ; is32bits = $false ; adminRights = $false ; CLR = "" ; }
+  #[pscustomobject]@{Name = "hubvaletrocas" ; is32bits = $false ; adminRights = $false }
+  #[pscustomobject]@{Name = "agendaservicos" ; is32bits = $false ; adminRights = $false }
+  #[pscustomobject]@{Name = "implantar" ; is32bits = $false ; adminRights = $false }
+  #[pscustomobject]@{Name = "erp-webapp" ; is32bits = $false ; adminRights = $false }
+  #[pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = $false ; adminRights = $false }
+  #[pscustomobject]@{Name = "nfe4" ; is32bits = $false ; adminRights = $true }
 )
 
 $microvixAPIs = @(
-  [pscustomobject]@{Name = "erpadmin" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "crm-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "otico-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "lgpdterceiros-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "agendaservicos-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "cobranca-linx-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "cobranca-extrator-catalogo-digital-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "fastpass-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "faturamentoservicosterceiros-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "imagensprodutos-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "relatorio-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "servicos-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "terceiros-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "giftcard-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "erpcore-api" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "nfe-api" ; is32bits = "false" ; adminRights = "true" }
+  [pscustomobject]@{Name = "erpadmin" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "crm-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "otico-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "lgpdterceiros-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "agendaservicos-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "cobranca-linx-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "cobranca-extrator-catalogo-digital-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "fastpass-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "faturamentoservicosterceiros-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "imagensprodutos-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "relatorio-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "servicos-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "terceiros-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "giftcard-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "erpcore-api" ; is32bits = $false ; adminRights = $false }
+  [pscustomobject]@{Name = "nfe-api" ; is32bits = $false ; adminRights = $true }
 
 )
 
@@ -257,27 +271,38 @@ if ($isDev) {
     $microvixSites
     #$microvixAPIs
   }
-
+  [string] $projectName = "API"
+  [string] $path = "${pathWebSite}\${projectName}"
   # Create  site with main server name
   $BindingPrimary = "${hostname}.${Domain}"
+  Write-Output @("
+  Dev Default Site 
+      Site name: ${projectName}
+      Site Path is: ${path} 
+      Binding: ${BindingPrimary}
+  ")
   start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${BindingPrimary}" 
 
   foreach ($item in $allApps) {
+
     [string] $projectName = ($item).Name
     [string] $path = "${pathWebSite}\${projectName}"
+    
+    # Dynamic Vars
     $siteBinding = "${hostname}-${projectName}-${envName}.${Domain}"
 
     Write-Output @("
-      Site name: ${projectName}
+    Microvix Web: ${projectName}
       Site Path is: ${path} 
       Binding: ${siteBinding}
+      32bits: $($item.is32bits)
+      .NET CLR: $($item.CLR)
+      ManagedPipeline: $($item.ManagedPipeline)
     ")
 
-    $Config32BitsConfigSet = If ($condition) { "true" } Else { "false" }
+    # $ConfigCustomIdentity = If ($condition) { "true" } Else { "false" }
 
-    $ConfigCustomIdentity = If ($condition) { "true" } Else { "false" }
-
-    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" 
+    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" -appPool32Bits $item.is32bits -dotnetCLR $item.CLR -ManagedPipelineMode $item.ManagedPipeline -PurgeSites $true
     
   }
 } 
