@@ -46,8 +46,8 @@ function start-WebEnvironmentBuilder {
 
     # App Pool
     [bool]$appPool32Bits = $false,
-    [string]$dotnetCLR = "v4",
-    [string]$ManagedPipelineMode = "Integrated",
+    [string]$dotnetCLR = "v4.0", # Possible Values: "v4.0", "v2.0" or "" (its like No Mamaged Code)
+    [string]$ManagedPipelineMode = "Integrated", # Possible Values: "Integrated" or "Classic"
 
     # Config - Site
     [bool]$setWebServerDefaults = $true,
@@ -75,6 +75,8 @@ function start-WebEnvironmentBuilder {
     Write-Output "########################### TRIGGERED #############################"
     Write-Output "###################################################################"
 
+    write-output "Purging site: ${siteName}" 
+
     if ((Test-Path "IIS:\sites\$siteName") -eq $true) {
       # Delete site "Default Web Site"
       write-output "Purging site ${siteName}" 
@@ -91,8 +93,6 @@ function start-WebEnvironmentBuilder {
       & $AppCmd  delete AppPool "${siteName}" | Out-Null
     }
     Write-Output "###################################################################"
-    Write-Output "###########################  DELETE   #############################"
-    Write-Output "###########################  ACTION   #############################"
     Write-Output "###########################   END     #############################"
     Write-Output "###################################################################"
   }
@@ -114,11 +114,6 @@ function start-WebEnvironmentBuilder {
   }
 
 
-  $testSitePath = test-path -path $sitePath
-  If ($testSitePath -eq $false) {
-    new-item -type Directory -path $sitePath | Out-Null
-  }
-
   if ((Test-Path "IIS:\AppPools\$siteName") -eq $False) {
     ## Application pool doesn't exist, create it...
     # PowerShell: New-Item -Path "IIS:\AppPools" -Name $siteName -Type AppPool
@@ -130,14 +125,22 @@ function start-WebEnvironmentBuilder {
   }
   
   if ((Test-Path "IIS:\sites\$siteName") -eq $False) {
+    # Create Site Directory
+    $testSitePath = test-path -path $sitePath
+    If ($testSitePath -eq $false) {
+      new-item -type Directory -path $sitePath | Out-Null
+    }
+
     # Site doesn't exist, create it...
     # PowerShell New-WebSite -Name $siteName -Port 80 -HostHeader $dnsFqdn -PhysicalPath $sitePath
     & $AppCmd add site /name:$siteName /physicalPath:$sitePath /bindings:$Bindings | Out-Null
+    
+    ## Adiciona um caracter slash / no final do nome do Site 
+    $appPoolCombine = "${siteName}/"
+    & $AppCmd set app "${appPoolCombine}" /applicationPool:$siteName | Out-Null
   }
 
-  ## Adiciona um caracter slash / no final do nome do Site 
-  $appPoolCombine = "${siteName}/"
-  & $AppCmd set app "${appPoolCombine}" /applicationPool:$siteName | Out-Null
+
   
   if ($Customidentity) {
     $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
@@ -152,7 +155,6 @@ function start-WebEnvironmentBuilder {
     & $AppCmd set AppPool $siteName /recycling.periodicRestart.privateMemory:'2867200' /commit:apphost | Out-Null
   }
   else {
-    Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "enable32BitAppOnWin64" -value $false | Out-Null
     # Recycling Defaults - x64 AppPool process
     # Private (RAM): 10GiB RAM
     # VirtualMemory (Memory) 25 GiB RAM
@@ -229,9 +231,9 @@ $envName = "gustavo"
 $pathWebSite = "c:\linx"
 
 $microvixSites = @(
-  [pscustomobject]@{Name = "crm" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integraded" ; CLR = "v4" ; }
-  [pscustomobject]@{Name = "vendafacil" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integraded" ; CLR = "" ; }
-  [pscustomobject]@{Name = "erp-mvx" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "v4" ; }
+  [pscustomobject]@{Name = "crm" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; }
+  [pscustomobject]@{Name = "vendafacil" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; }
+  [pscustomobject]@{Name = "erp-mvx" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "v4.0" ; }
   [pscustomobject]@{Name = "erp-login" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "" ; }
   #[pscustomobject]@{Name = "estoque" ; is32bits = $false ; adminRights = $false ; CLR = "" ;  }
   #[pscustomobject]@{Name = "wms" ; is32bits = $false ; adminRights = $false ; CLR = "" ; }
