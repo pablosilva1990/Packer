@@ -15,21 +15,26 @@
   Esse parametro pode ser aceitacao, prod, rc, hom, etc 
   Pode usar para simbolizar um nome de portal também. Ex: 9090
 
- .Example
- .\script-iis.ps1 -slot 9040 -domain microvix.com.br -hostname expdevops
-
+ .Example Microvix DEV
+ $SecurePassword = ConvertTo-SecureString "Pa$$w0rdMicrovixSitesIIS" -AsPlainText -Force
+ .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.vmdev" -webPassword $SecurePassword -isDev $true
+ 
+ .Example Microvix Web Server 
+ .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.vmaceitacao" -webPassword $SecurePassword
 #>
 param (
   [string] $pathWebSite = "c:\linx",
-  [string] $HostName = "expdevops",
-  [string] $envName = "aceitacao",
-  [string] $Domain = "microvix.com.br",
+  [string] $HostName ,
+  [string] $envName ,
+  [string] $Domain ,
   [string] $logsPath = "c:\site\logs",
   [bool] $UseCustomUsername = $false,
   [bool] $isDev = $false,
   [bool] $PurgeDefaults = $true,
   [bool] $setWebServerDefaults = $true,
-  [bool] $purgeSites = $false
+  [bool] $purgeSites = $false,
+  [string]$WebLogin,
+  [securestring]$WebPassword
 
 )
 
@@ -74,14 +79,6 @@ function start-WebEnvironmentBuilder {
   # Purge Site
   if ($purgeSites) {
 
-    Write-Output ""
-    Write-Output ""
-    Write-Output "###########################  DELETE   #############################"
-    Write-Output "###########################  ACTION   #############################"
-    Write-Output "########################### TRIGGERED #############################"
-    Write-Output ""
-    Write-Output ""
-
     write-output "Purging site: ${siteName}" 
 
     if ((Test-Path "IIS:\sites\$siteName") -eq $true) {
@@ -89,14 +86,12 @@ function start-WebEnvironmentBuilder {
       write-output "Purging site ${siteName}" 
       & $AppCmd delete site "${siteName}" | Out-Null 
       if ($PurgeSiteFolder) {
-        write-output "Deleting site path ${sitePath}"
         remove-item -Path $sitePath -Force -Confirm:$false -Recurse
       }
     }
    
     if ((Test-Path "IIS:\AppPools\$siteName") -eq $true) {
       # Delete site "Default Web Site"
-      write-output "Purging AppPool ${siteName}"
       & $AppCmd  delete AppPool "${siteName}" | Out-Null
     }
   }
@@ -166,8 +161,8 @@ function start-WebEnvironmentBuilder {
   
   if ($Customidentity) {
     $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
-    Set-ItemProperty -Path "IIS:\AppPools\$appPool" -name "processModel" -value $identity | Out-Null
-    & $AppCmd set AppPool $appPool /processModel.LoadUserProfile:'true' /commit:apphost
+    Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "processModel" -value $identity | Out-Null
+    & $AppCmd set AppPool $appPool /processModel.LoadUserProfile:'true' /commit:apphost | Out-Null
   }
 
   ## Application Pool Config 
@@ -290,45 +285,40 @@ function start-WebEnvironmentBuilder {
 
 }
 
-# Predefined Values
-$envName = "aceitacao"
-$Domain = "microvix.com.br"
-$isDev = $true
-$envName = "gustavo"
-$pathWebSite = "c:\linx"
 
 $microvixSites = @(
-  [pscustomobject]@{Name = "crm" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" }
-  [pscustomobject]@{Name = "vendafacil" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; type = "APP" }
-  [pscustomobject]@{Name = "erp-mvx" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "v4.0" ; type = "APP" }
-  [pscustomobject]@{Name = "erp-login" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "" ; type = "APP" }
-  #[pscustomobject]@{Name = "estoque" ; is32bits = $false ; adminRights = $false ; CLR = "" ;  ; type = "APP"}
-  #[pscustomobject]@{Name = "wms" ; is32bits = $false ; adminRights = $false ; CLR = "" ; ; type = "APP"}
-  #[pscustomobject]@{Name = "hubvaletrocas" ; is32bits = $false ; adminRights = $false ; type = "APP"}
-  #[pscustomobject]@{Name = "agendaservicos" ; is32bits = $false ; adminRights = $false ; type = "APP"}
-  #[pscustomobject]@{Name = "implantar" ; is32bits = $false ; adminRights = $false ; type = "APP"}
-  #[pscustomobject]@{Name = "erp-webapp" ; is32bits = $false ; adminRights = $false ; type = "APP"}
-  #[pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = $false ; adminRights = $false ; type = "APP"}
-  #[pscustomobject]@{Name = "nfe4" ; is32bits = $false ; adminRights = $true ; type = "APP"}
+  [pscustomobject]@{Name = "crm" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "vendafacil" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; type = "APP" ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "erp-mvx" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "v4.0" ; type = "APP" ; login = $WebLogin; password = $WebPassword ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "erp-login" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "" ; type = "APP" ; login = $WebLogin; password = $WebPassword ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "estoque" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; type = "APP" ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "wms" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; type = "APP" ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "hubvaletrocas" ; is32bits = $false ; ManagedPipeline = "Integrated" ; adminRights = $false ; type = "APP" ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "agendaservicos" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "implantar" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "erp-webapp" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; type = "APP" ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" ; startupMode = "OnDemand" }
+  [pscustomobject]@{Name = "nfe4" ; is32bits = $false ; adminRights = $true ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" ; login = $WebLogin; password = $WebPassword ; startupMode = "OnDemand" }
 )
 
 $microvixAPIs = @(
-  [pscustomobject]@{Name = "erpadmin" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "crm-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "otico-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "lgpdterceiros-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "agendaservicos-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "cobranca-linx-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "cobranca-extrator-catalogo-digital-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "fastpass-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "faturamentoservicosterceiros-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "imagensprodutos-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "relatorio-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "servicos-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "terceiros-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "giftcard-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "erpcore-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
-  [pscustomobject]@{Name = "nfe-api" ; is32bits = $false ; adminRights = $true ; type = "API"; }
+  [pscustomobject]@{Name = "erpadmin" ; is32bits = $false ; adminRights = $false ; type = "API" ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "crm-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "otico-api" ; is32bits = $false ; adminRights = $false ; type = "API" ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "lgpdterceiros-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "agendaservicos-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "cobranca-linx-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "cobranca-extrator-catalogo-digital-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "fastpass-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "faturamentoservicosterceiros-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "imagensprodutos-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "relatorio-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "servicos-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "terceiros-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "giftcard-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "erpcore-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "nfe-api" ; is32bits = $false ; adminRights = $true ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "API"; login = $WebLogin; password = $WebPassword ; startupMode = "AlwaysRunning" }
+  [pscustomobject]@{Name = "admfinanceiro" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "API" ; startupMode = "AlwaysRunning" }
 
 )
 
@@ -348,7 +338,11 @@ if ($isDev) {
       Binding: ${BindingPrimary}
   ")
   
-  start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${BindingPrimary}" 
+  start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${BindingPrimary}" `
+    -startup "OnDemand" `
+    -dotnetCLR "" `
+    -appPool32Bits $true `
+    -PurgeSites $true
 
   # merge lists - When is Dev. The script will create a base site and all the webapps
   $allApps = & { 
@@ -371,9 +365,25 @@ if ($isDev) {
       ManagedPipeline: $($item.ManagedPipeline)
     ")
 
-    $AdminRights = If ($($condition.adminRights)) { write-output "true Admin" } Else { "Not Admin" }
-    
-    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" -startup "OnDemand" -appPool32Bits $item.is32bits -dotnetCLR $item.CLR -ManagedPipelineMode $item.ManagedPipeline -PurgeSites $true
+    If ($($item.adminRights)) { 
+      start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
+        -startup "$($item.startupMode)"`
+        -appPool32Bits $item.is32bits `
+        -dotnetCLR $item.CLR `
+        -ManagedPipelineMode $item.ManagedPipeline `
+        -PurgeSites $true `
+        -CustomIdentity $True `
+        -CustomIdentityLogin $($item.login) `
+        -CustomIdentityPassowrd $($item.password)
+    }      
+    Else { 
+      start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
+        -startup "$($item.startupMode)" `
+        -appPool32Bits $item.is32bits `
+        -dotnetCLR $item.CLR `
+        -ManagedPipelineMode $item.ManagedPipeline `
+        -PurgeSites $true 
+    }
     
   }
 } 
@@ -388,6 +398,23 @@ else {
   $siteBinding = "${projectName}-${envName}.${Domain}"
   $path = "${pathWebSite}\${siteBinding}"
   
-  if ($type -eq "API") { start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" -startup "AlwaysRunning" -appPool32Bits $item.is32bits -dotnetCLR $item.CLR -ManagedPipelineMode $item.ManagedPipeline -PurgeSites $true }
-  if ($type -eq "APP") { start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" -startup "OnDemand" -appPool32Bits $item.is32bits -dotnetCLR $item.CLR -ManagedPipelineMode $item.ManagedPipeline -PurgeSites $true }
+  If ($($item.adminRights)) { 
+    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
+      -startup "$($item.startupMode)" `
+      -appPool32Bits $item.is32bits `
+      -dotnetCLR $item.CLR `
+      -ManagedPipelineMode $item.ManagedPipeline `
+      -PurgeSites $true `
+      -CustomIdentity $True `
+      -CustomIdentityLogin $($item.login) `
+      -CustomIdentityPassowrd $($item.password)
+  }      
+  Else { 
+    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
+      -startup "$($item.startupMode)"`
+      -appPool32Bits $item.is32bits `
+      -dotnetCLR $item.CLR `
+      -ManagedPipelineMode $item.ManagedPipeline `
+      -PurgeSites $true 
+  }
 }
