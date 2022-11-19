@@ -64,13 +64,6 @@ function start-WebEnvironmentBuilder {
     [bool]$PurgeSites = $false,
     [bool]$PurgeSiteFolder = $false
   )
-  Write-Output "####################################################################"
-  Write-Output "###########################    START     ###########################"
-  Write-Output "###########################  environment ###########################"
-  Write-Output "###########################    Builder   ###########################"
-  Write-Output "####################################################################"
-  Write-Output ""
-  Write-Output ""
   
   import-module WebAdministration
   $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
@@ -124,11 +117,6 @@ function start-WebEnvironmentBuilder {
     }
   }
 
-  Write-Output ""
-  Write-Output ""
-  Write-Output "###########################  CREATE   #############################"
-  Write-Output "###########################  ACTION   #############################"
-  Write-Output ""
 
   if ((Test-Path "IIS:\AppPools\$siteName") -eq $False) {
     ## Application pool doesn't exist, create it...
@@ -175,7 +163,6 @@ function start-WebEnvironmentBuilder {
     }
 
   }
-
   
   if ($Customidentity) {
     $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
@@ -299,10 +286,8 @@ function start-WebEnvironmentBuilder {
     # RequestLimit
     & $AppCmd set config -section:system.webServer/security/requestFiltering /requestLimits.maxAllowedContentLength:'524288000' /commit:apphost | out-null 
   }
-  
-  Write-Output "####################################################################"
-  Write-Output "############################     END     ###########################"
-  Write-Output "####################################################################"
+
+
 }
 
 # Predefined Values
@@ -349,24 +334,26 @@ $microvixAPIs = @(
 
 
 if ($isDev) {
-  # merge lists - When is Dev. The script will create a base site and all the webapps
-  $allApps = & { 
-    $microvixSites
-    #$microvixAPIs
-  }
+
   [string] $projectName = "API"
   # Create  site with main server name
-  $BindingPrimary = "${hostname}.${Domain}"
+  $BindingPrimary = "${hostname}-${projectName}.${Domain}"
   [string] $path = "${pathWebSite}\${BindingPrimary}"
 
-
+  # Verbose
   Write-Output @("
   Dev Default Site 
       Site name: ${projectName}
       Site Path is: ${path} 
       Binding: ${BindingPrimary}
   ")
+  
   start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${BindingPrimary}" 
+
+  # merge lists - When is Dev. The script will create a base site and all the webapps
+  $allApps = & { 
+    $microvixSites
+  }
 
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
@@ -384,7 +371,7 @@ if ($isDev) {
       ManagedPipeline: $($item.ManagedPipeline)
     ")
 
-    # $ConfigCustomIdentity = If ($condition) { "true" } Else { "false" }
+    $AdminRights = If ($($condition.adminRights)) { write-output "true Admin" } Else { "Not Admin" }
     
     start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" -startup "OnDemand" -appPool32Bits $item.is32bits -dotnetCLR $item.CLR -ManagedPipelineMode $item.ManagedPipeline -PurgeSites $true
     
