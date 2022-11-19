@@ -176,8 +176,6 @@ function start-WebEnvironmentBuilder {
 
   }
 
-
-
   
   if ($Customidentity) {
     $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
