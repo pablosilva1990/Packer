@@ -40,108 +40,176 @@ $envName = "aceitacao"
 $Domain = "microvix.com.br"
 $isDev = $true
 $envName = "gustavo"
-$PurgeDefaults = $false
 $pathWebSite = "c:\linx"
-$purgeSites = $true
+
 
 function start-WebEnvironmentBuilder {
   param (
+    # General Settings
     [string]$siteName,
-    [string]$path,
+    [string]$sitePath,
 
+    # Site and Pool Login
     [bool]$CustomIdentity = $false,
     [string]$CustomIdentityLogin,
     [string]$CustomIdentityPassowrd,
 
-    [bool]$appPool32Bits = $false
+    # App Pool
+    [bool]$appPool32Bits = $false,
 
+    # Purge Parametsr
+    [bool]$PurgeDefaults = $true,
+    [bool]$PurgeSites = $true
   )
   import-module WebAdministration
-  write-output "entrou na function"
+
   #Dynamic variables
   $Bindings = "http/:80:${siteName}"
 
+  # Purge Site
+  if ($purgeSites) {
+    if ((Test-Path "IIS:\sites\$siteName") -eq $true) {
+      # Delete site "Default Web Site"
+      write-output "Purging site ${siteName}"
+      & $AppCmd delete site "${siteName}" | Out-Null
+    }
+   
+    if ((Test-Path "IIS:\AppPools\$siteName") -eq $true) {
+      # Delete site "Default Web Site"
+      write-output "Purging AppPool ${siteName}"
+      & $AppCmd  delete AppPool "${siteName}" | Out-Null
+    }
+  }
+  
+  # Remove Defaults
+  if ($PurgeDefaults) {
+  
+    if ((Test-Path "IIS:\sites\Default Web Site") -eq $true) {
+      # Delete site "Default Web Site"
+      & $AppCmd delete site "Default Web Site" | Out-Null
+    }
+    $AppPoolDft = @('Classic .NET AppPool', '.NET v2.0 Classic', '.NET v2.0', '.NET v4.5 Classic', '.NET v4.5', 'DefaultAppPool')
+    foreach ($a in $AppPoolDft) {
+      if ((Test-Path "IIS:\AppPools\$a") -eq $true) {
+        # Application pool doesn't exist, create it...
+        & $AppCmd  delete AppPool $a | Out-Null
+      }
+    }
+  }
+
+
+  $testSitePath = test-path -path $sitePath
+  If ($testSitePath -eq $false) {
+    new-item -type Directory -path $sitePath | Out-Null
+  }
 
   if ((Test-Path "IIS:\AppPools\$siteName") -eq $False) {
     ## Application pool doesn't exist, create it...
     # PowerShell: New-Item -Path "IIS:\AppPools" -Name $siteName -Type AppPool
-    & $AppCmd add apppool /name:$siteName
+    & $AppCmd add apppool /name:$siteName | Out-Null
+
+    # Recycling Defaults
+    & $AppCmd set AppPool $siteName /-recycling.periodicRestart.time | Out-Null
+    & $AppCmd set AppPool $siteName /recycling.periodicRestart.time:"00:00:00" /commit:apphost | Out-Null
+
   }
  
   if ((Test-Path "IIS:\sites\$siteName") -eq $False) {
     # Site doesn't exist, create it...
-    # PowerShell New-WebSite -Name $siteName -Port 80 -HostHeader $dnsFqdn -PhysicalPath $path
-    & $AppCmd add site /name:$siteName /physicalPath:$path /bindings:$Bindings
+    # PowerShell New-WebSite -Name $siteName -Port 80 -HostHeader $dnsFqdn -PhysicalPath $sitePath
+    & $AppCmd add site /name:$siteName /physicalPath:$sitePath /bindings:$Bindings | Out-Null
   }
 
   ## Adiciona um caracter slash / no final do nome do Site 
   $appPoolCombine = "${siteName}/"
-  & $AppCmd set app "${appPoolCombine}" /applicationPool:$siteName
+  & $AppCmd set app "${appPoolCombine}" /applicationPool:$siteName | Out-Null
   
   if ($Customidentity) {
     $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
-    Set-ItemProperty -Path "IIS:\AppPools\$appPool" -name "processModel" -value $identity
+    Set-ItemProperty -Path "IIS:\AppPools\$appPool" -name "processModel" -value $identity | Out-Null
   }
 
   ## Application Pool Config 
   if ($appPool32Bits) {
-    Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "enable32BitAppOnWin64" -value $true
+    Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "enable32BitAppOnWin64" -value $true | Out-Null
+    # Recycling Defaults - x86 AppPool process
+    & $AppCmd set AppPool $siteName /recycling.periodicRestart.memory:'3481600' | Out-Null
+    & $AppCmd set AppPool $siteName /recycling.periodicRestart.privateMemory:'2867200' /commit:apphost | Out-Null
   }
   else {
-    Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "enable32BitAppOnWin64" -value $false
+    Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "enable32BitAppOnWin64" -value $false | Out-Null
+    # Recycling Defaults - x64 AppPool process
+    # Private (RAM): 10GiB RAM
+    # VirtualMemory (Memory) 25 GiB RAM
+    & $AppCmd set AppPool $siteName /recycling.periodicRestart.memory:'26214400'  | Out-Null
+    & $AppCmd set AppPool $siteName /recycling.periodicRestart.privateMemory:'10485760' /commit:apphost | Out-Null
   }
   
   ## SET LOGS CONFIG
   $LogValues = "Date,Time,ClientIP,UserName,SiteName,ComputerName,ServerIP,Method,UriStem,UriQuery,HttpStatus,Win32Status,BytesSent,BytesRecv,TimeTaken,ServerPort,UserAgent,Cookie,Referer,ProtocolVersion,Host,HttpSubStatus" 
   $settings = @{ logFormat = "W3c"; enabled = $true; directory = $logsPath; period = "Hourly" ; localTimeRollover = "True" ; logExtFileFlags = "${logValues}" }
-  Set-ItemProperty "IIS:\Sites\$siteName" -name "logFile" -value $settings
-
-}
-
-
-# Remove Defaults
-if ($PurgeDefaults) {
+  Set-ItemProperty "IIS:\Sites\$siteName" -name "logFile" -value $settings | Out-Null
   
-  if ((Test-Path "IIS:\sites\Default Web Site") -eq $true) {
-    # Delete site "Default Web Site"
-    & $AppCmd delete site "Default Web Site"
-  }
-  $AppPoolDft = @('Classic .NET AppPool', '.NET v2.0 Classic', '.NET v2.0', '.NET v4.5 Classic', '.NET v4.5', 'DefaultAppPool')
-  foreach ($a in $AppPoolDft) {
-    if ((Test-Path "IIS:\AppPools\$a") -eq $true) {
-      # Application pool doesn't exist, create it...
-      & $AppCmd  delete AppPool $a
-    }
-  }
+  ## Custom Headers
+  #$logValuesCustom = @{logFieldName = 'X-Forwarded-For'; sourceName = 'X-Forwarded-For'; sourceType = 'RequestHeader' }
+  #Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST'  -filter "system.applicationHost/sites/site[@name="${siteName}"]/logFile/customFields" -name "." -value $logValuesCustom
+
 }
+
+
+
 
 if ($setWebServerDefaults) {
   # Server Config
-  & $AppCmd unlock config /section:system.webServer/handlers
-  & $AppCmd unlock config /section:system.webServer/modules
-  & $AppCmd unlock config /section:system.webServer/asp
+  & $AppCmd unlock config /section:system.webServer/handlers | Out-Null
+  & $AppCmd unlock config /section:system.webServer/modules | Out-Null
+  & $AppCmd unlock config /section:system.webServer/asp | Out-Null
 
   $testLogPath = test-path -path $logsPath
   If ($testLogPath -eq $false) {
-    new-item -type Directory -path $logsPath
+    new-item -type Directory -path $logsPath | Out-Null
   }
 
+  # ASP Classic Section "long live the King"
+
+  & $AppCmd set config -section:system.webServer/asp /scriptErrorSentToBrowser:'True' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /errorsToNTLog:'True' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /EnableParentPaths:'True' /commit:apphost | Out-Null
+
+  # TrackingID MS 2208240040004733 - MTA must be disabled. 
+  # Alterar isso potencializará problemas de performance em magnitudes inimaginaveis
+  & $AppCmd  set config -section:system.webServer/asp /comPlus.executeInMta:'False' /commit:apphost | Out-Null
+
+  & $AppCmd set config -section:system.webServer/asp /Session.timeOut:'00:20:00' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /Limits.bufferingLimit:'10094304' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /Limits.maxRequestEntityAllowed:'2147483647' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /Limits.processorThreadMax:'250' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /Limits.scriptTimeout:'00:10:00' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /cache.scriptFileCacheSize:'0' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /cache.maxDiskTemplateCacheFiles:'0' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /cache.scriptEngineCacheMax:'0' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /cache.enableTypelibCache:'True' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/asp /cache.diskTemplateCacheDirectory:'c:\inetpub\temp\ASP Compiled Templates' /commit:apphost | Out-Null
+
+  & $AppCmd set config -section:system.webServer/urlCompression /doDynamicCompression:'false' /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/httpCompression /minFileSizeForComp:2700 /commit:apphost | Out-Null
+  & $AppCmd set config -section:system.webServer/httpCompression /maxDiskSpaceUsage:16000 /commit:apphost | Out-Null
 }
 
 $microvixSites = @(
-  [pscustomobject]@{Name = "crm-app" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "crm-api" ; is32bits = "false" ; adminRights = "false" }
+  [pscustomobject]@{Name = "crm" ; is32bits = "false" ; adminRights = "false" }
   [pscustomobject]@{Name = "vendafacil" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "estoque" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "wms" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "hubvaletrocas" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "agendaservicos-app" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "implantar" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "erp-app" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = "false" ; adminRights = "false" }
-  [pscustomobject]@{Name = "nfe4-app" ; is32bits = "false" ; adminRights = "true" }
-
-) 
+  [pscustomobject]@{Name = "erp-mvx" ; is32bits = "true" ; adminRights = "true" }
+  [pscustomobject]@{Name = "erp-login" ; is32bits = "true" ; adminRights = "true" }
+  #[pscustomobject]@{Name = "estoque" ; is32bits = "false" ; adminRights = "false" }
+  #[pscustomobject]@{Name = "wms" ; is32bits = "false" ; adminRights = "false" }
+  #[pscustomobject]@{Name = "hubvaletrocas" ; is32bits = "false" ; adminRights = "false" }
+  #[pscustomobject]@{Name = "agendaservicos" ; is32bits = "false" ; adminRights = "false" }
+  #[pscustomobject]@{Name = "implantar" ; is32bits = "false" ; adminRights = "false" }
+  #[pscustomobject]@{Name = "erp-webapp" ; is32bits = "false" ; adminRights = "false" }
+  #[pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = "false" ; adminRights = "false" }
+  #[pscustomobject]@{Name = "nfe4" ; is32bits = "false" ; adminRights = "true" }
+)
 
 $microvixAPIs = @(
   [pscustomobject]@{Name = "erpadmin" ; is32bits = "false" ; adminRights = "false" }
@@ -174,18 +242,24 @@ if ($isDev) {
 
   # Create  site with main server name
   $BindingPrimary = "${hostname}.${Domain}"
-  start-WebEnvironmentBuilder -path "${path}" -siteName "${BindingPrimary}" 
+  start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${BindingPrimary}" 
 
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
-    [string] $path = "${pathWebSite}\${projectName}\"
+    [string] $path = "${pathWebSite}\${projectName}"
     $siteBinding = "${hostname}-${projectName}-${envName}.${Domain}"
 
-    Write-Output $projectName
-    Write-Output $path
-    write-output $siteBinding
+    Write-Output @("
+      Site name: ${projectName}
+      Site Path is: ${path} 
+      Binding: ${siteBinding}
+    ")
 
-    start-WebEnvironmentBuilder -path "${path}" -siteName "${siteBinding}" 
+    $Config32BitsConfigSet = If ($condition) { "true" } Else { "false" }
+
+    $ConfigCustomIdentity = If ($condition) { "true" } Else { "false" }
+
+    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" 
     
   }
 } 
@@ -197,10 +271,10 @@ else {
   }
 
   [string] $projectName = ($item).Name
-  [string] $path = "${pathWebSite}\${projectName}\"
+  [string] $path = "${pathWebSite}\${projectName}"
   $siteBinding = "${projectName}-${envName}.${Domain}"
-
-  start-WebEnvironmentBuilder -projectName "${projectName}" -path "${path}" -bindings "${siteBinding}" -CustomIdentity $false 
+  
+  start-WebEnvironmentBuilder -projectName "${projectName}" -sitePath "${path}" -bindings "${siteBinding}" -CustomIdentity $false 
 
 }
 
