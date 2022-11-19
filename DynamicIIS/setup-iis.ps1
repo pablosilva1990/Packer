@@ -48,18 +48,30 @@ function start-WebEnvironmentBuilder {
     [bool]$appPool32Bits = $false,
     [string]$dotnetCLR = "v4.0", # Possible Values: "v4.0", "v2.0" or "" (its like No Mamaged Code)
     [string]$ManagedPipelineMode = "Integrated", # Possible Values: "Integrated" or "Classic"
+    [string]$startup = "OnDemand",
 
     # Config - Site
     [bool]$setWebServerDefaults = $true,
     [bool]$customTestLogPathEnabled = $false,
     [string]$logsPath,
+    [bool]$ASPClassicConfig = $true,
+
+    #Security
+    [bool]$configRequestFiltering = $false,
 
     # Purge Parametsr
     [bool]$PurgeDefaults = $true,
     [bool]$PurgeSites = $false,
     [bool]$PurgeSiteFolder = $false
   )
-
+  Write-Output "####################################################################"
+  Write-Output "###########################    START     ###########################"
+  Write-Output "###########################  environment ###########################"
+  Write-Output "###########################    Builder   ###########################"
+  Write-Output "####################################################################"
+  Write-Output ""
+  Write-Output ""
+  
   import-module WebAdministration
   $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
 
@@ -69,11 +81,13 @@ function start-WebEnvironmentBuilder {
   # Purge Site
   if ($purgeSites) {
 
-    Write-Output "###################################################################"
+    Write-Output ""
+    Write-Output ""
     Write-Output "###########################  DELETE   #############################"
     Write-Output "###########################  ACTION   #############################"
     Write-Output "########################### TRIGGERED #############################"
-    Write-Output "###################################################################"
+    Write-Output ""
+    Write-Output ""
 
     write-output "Purging site: ${siteName}" 
 
@@ -92,9 +106,6 @@ function start-WebEnvironmentBuilder {
       write-output "Purging AppPool ${siteName}"
       & $AppCmd  delete AppPool "${siteName}" | Out-Null
     }
-    Write-Output "###################################################################"
-    Write-Output "###########################   END     #############################"
-    Write-Output "###################################################################"
   }
 
   # Remove Defaults
@@ -113,6 +124,11 @@ function start-WebEnvironmentBuilder {
     }
   }
 
+  Write-Output ""
+  Write-Output ""
+  Write-Output "###########################  CREATE   #############################"
+  Write-Output "###########################  ACTION   #############################"
+  Write-Output ""
 
   if ((Test-Path "IIS:\AppPools\$siteName") -eq $False) {
     ## Application pool doesn't exist, create it...
@@ -122,6 +138,17 @@ function start-WebEnvironmentBuilder {
     # Recycling Defaults
     & $AppCmd set AppPool $siteName /-recycling.periodicRestart.time | Out-Null
     & $AppCmd set AppPool $siteName /recycling.periodicRestart.time:"00:00:00" /commit:apphost | Out-Null
+
+    # Process Model 
+    & $AppCmd set AppPool $siteName /processModel.idleTimeout:'01:00:00' /commit:apphost | Out-Null
+    & $AppCmd set AppPool $siteName /processModel.pingResponseTime:'00:00:15' /commit:apphost | Out-Null
+    & $AppCmd set AppPool $siteName /processModel.pingInterval:'00:00:30' /commit:apphost | Out-Null
+    & $AppCmd set AppPool $siteName /processModel.shutdownTimeLimit:'00:00:30' /commit:apphost | Out-Null
+    & $AppCmd set AppPool $siteName /processModel.startupTimeLimit:'00:00:30' /commit:apphost | Out-Null
+
+    # start Mode 
+    & $AppCmd set AppPool $siteName /startmode:"${startup}" /commit:apphost | Out-Null
+
   }
   
   if ((Test-Path "IIS:\sites\$siteName") -eq $False) {
@@ -138,13 +165,24 @@ function start-WebEnvironmentBuilder {
     ## Adiciona um caracter slash / no final do nome do Site 
     $appPoolCombine = "${siteName}/"
     & $AppCmd set app "${appPoolCombine}" /applicationPool:$siteName | Out-Null
+
+    if (($isDev) -and ($siteName -like "*erp-mvx*")) {
+      $PrivateDir = "C:\linx\${siteName}\private"
+      If ((Test-Path $PrivateDir) -eq $false) {
+        new-item -type Directory -path $PrivateDir | Out-Null
+      }
+      & $AppCmd  set config  -section:system.applicationHost/sites /+"[name='${siteName}'].[path='/'].[path='/Private', physicalPath='${PrivateDir}']" /commit:apphost | out-null
+    }
+
   }
+
 
 
   
   if ($Customidentity) {
     $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
     Set-ItemProperty -Path "IIS:\AppPools\$appPool" -name "processModel" -value $identity | Out-Null
+    & $AppCmd set AppPool $appPool /processModel.LoadUserProfile:'true' /commit:apphost
   }
 
   ## Application Pool Config 
@@ -174,7 +212,7 @@ function start-WebEnvironmentBuilder {
         new-item -type Directory -path $logsPath | Out-Null
       }
       ## SET LOGS CONFIG
-      $LogValues = "Date,Time,ClientIP,UserName,SiteName,ComputerName,ServerIP,Method,UriStem,UriQuery,HttpStatus,Win32Status,BytesSent,BytesRecv,TimeTaken,ServerPort,UserAgent,Cookie,Referer,ProtocolVersion,Host,HttpSubStatus" 
+      $LogValues = "Date, Time, ClientIP, UserName, SiteName, ComputerName, ServerIP, Method, UriStem, UriQuery, HttpStatus, Win32Status, BytesSent, BytesRecv, TimeTaken, ServerPort, UserAgent, Cookie, Referer, ProtocolVersion, Host, HttpSubStatus" 
       $settings = @{ logFormat = "W3c"; enabled = $true; directory = $logsPath; period = "Hourly" ; localTimeRollover = "True" ; logExtFileFlags = "${logValues}" }
       Set-ItemProperty "IIS:\Sites\$siteName" -name "logFile" -value $settings | Out-Null
   
@@ -185,14 +223,13 @@ function start-WebEnvironmentBuilder {
     }
     else {
       ## SET LOGS CONFIG
-      $LogValues = "Date,Time,ClientIP,UserName,SiteName,ComputerName,ServerIP,Method,UriStem,UriQuery,HttpStatus,Win32Status,BytesSent,BytesRecv,TimeTaken,ServerPort,UserAgent,Cookie,Referer,ProtocolVersion,Host,HttpSubStatus" 
+      $LogValues = "Date, Time, ClientIP, UserName, SiteName, ComputerName, ServerIP, Method, UriStem, UriQuery, HttpStatus, Win32Status, BytesSent, BytesRecv, TimeTaken, ServerPort, UserAgent, Cookie, Referer, ProtocolVersion, Host, HttpSubStatus" 
       $settings = @{ logFormat = "W3c"; enabled = $true; period = "Hourly" ; localTimeRollover = "True" ; logExtFileFlags = "${logValues}" }
       Set-ItemProperty "IIS:\Sites\$siteName" -name "logFile" -value $settings | Out-Null
   
       ## Custom Headers
       #$logValuesCustom = @{logFieldName = 'X-Forwarded-For'; sourceName = 'X-Forwarded-For'; sourceType = 'RequestHeader' }
       #Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST'  -filter "system.applicationHost/sites/site[@name="${siteName}"]/logFile/customFields" -name "." -value $logValuesCustom
-
     }
 
     # ASP Classic Section "long live the King"
@@ -219,8 +256,55 @@ function start-WebEnvironmentBuilder {
     & $AppCmd set config -section:system.webServer/urlCompression /doDynamicCompression:'false' /commit:apphost | Out-Null
     & $AppCmd set config -section:system.webServer/httpCompression /minFileSizeForComp:2700 /commit:apphost | Out-Null
     & $AppCmd set config -section:system.webServer/httpCompression /maxDiskSpaceUsage:16000 /commit:apphost | Out-Null
+  
+
   }
 
+  if ($configRequestFiltering) {
+    # SYSUSERS
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sysusers', scanUrl='True', scanQueryString='True', scanAllRaw='False']" /commit:apphost | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sysusers'].denyStrings.[string='sysusers']" /commit:apphost | out-null
+
+    # SQLMAP
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sqlmap', scanUrl='True', scanQueryString='True', scanAllRaw='False']" | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sqlmap'].scanHeaders.[requestHeader='User-agent']" | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sqlmap'].denyStrings.[string='sqlmap']" | out-null
+
+    # internet-crawlers
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers', scanUrl='False', scanQueryString='False', scanAllRaw='False']" | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers'].scanHeaders.[requestHeader='User-Agent']" | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers'].denyStrings.[string='python']" | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers'].denyStrings.[string='got']" | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers'].denyStrings.[string='rest-client']" | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='internet-crawlers'].denyStrings.[string='mechanize']" | out-null
+
+    # sysdatabases
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sysdatabases', scanUrl='True', scanQueryString='True', scanAllRaw='False']" /commit:apphost | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sysdatabases'].denyStrings.[string='sysdatabases']" /commit:apphost | out-null
+
+    # information_schema
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='information_schema', scanUrl='True', scanQueryString='True', scanAllRaw='False']" /commit:apphost | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='information_schema'].denyStrings.[string='information_schema']" /commit:apphost | out-null
+
+    # sysobjects
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sysobjects', scanUrl='True', scanQueryString='True', scanAllRaw='False']" /commit:apphost | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='sysobjects'].denyStrings.[string='sysobjects']" /commit:apphost | out-null
+
+    # table_schema
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='table_schema', scanUrl='True', scanQueryString='True', scanAllRaw='False']" /commit:apphost | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='table_schema'].denyStrings.[string='table_schema']" /commit:apphost | out-null
+
+    # db_name
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='db_name', scanUrl='True', scanQueryString='True', scanAllRaw='False']" /commit:apphost | out-null
+    & $AppCmd  set config -section:system.webServer/security/requestFiltering /+"filteringRules.[name='db_name'].denyStrings.[string='DB_NAME%28']" /commit:apphost | out-null
+
+    # RequestLimit
+    & $AppCmd set config -section:system.webServer/security/requestFiltering /requestLimits.maxAllowedContentLength:'524288000' /commit:apphost | out-null 
+  }
+  
+  Write-Output "####################################################################"
+  Write-Output "############################     END     ###########################"
+  Write-Output "####################################################################"
 }
 
 # Predefined Values
@@ -231,41 +315,40 @@ $envName = "gustavo"
 $pathWebSite = "c:\linx"
 
 $microvixSites = @(
-  [pscustomobject]@{Name = "crm" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; }
-  [pscustomobject]@{Name = "vendafacil" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; }
-  [pscustomobject]@{Name = "erp-mvx" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "v4.0" ; }
-  [pscustomobject]@{Name = "erp-login" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "" ; }
-  #[pscustomobject]@{Name = "estoque" ; is32bits = $false ; adminRights = $false ; CLR = "" ;  }
-  #[pscustomobject]@{Name = "wms" ; is32bits = $false ; adminRights = $false ; CLR = "" ; }
-  #[pscustomobject]@{Name = "hubvaletrocas" ; is32bits = $false ; adminRights = $false }
-  #[pscustomobject]@{Name = "agendaservicos" ; is32bits = $false ; adminRights = $false }
-  #[pscustomobject]@{Name = "implantar" ; is32bits = $false ; adminRights = $false }
-  #[pscustomobject]@{Name = "erp-webapp" ; is32bits = $false ; adminRights = $false }
-  #[pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = $false ; adminRights = $false }
-  #[pscustomobject]@{Name = "nfe4" ; is32bits = $false ; adminRights = $true }
+  [pscustomobject]@{Name = "crm" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" }
+  [pscustomobject]@{Name = "vendafacil" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; type = "APP" }
+  [pscustomobject]@{Name = "erp-mvx" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "v4.0" ; type = "APP" }
+  [pscustomobject]@{Name = "erp-login" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "" ; type = "APP" }
+  #[pscustomobject]@{Name = "estoque" ; is32bits = $false ; adminRights = $false ; CLR = "" ;  ; type = "APP"}
+  #[pscustomobject]@{Name = "wms" ; is32bits = $false ; adminRights = $false ; CLR = "" ; ; type = "APP"}
+  #[pscustomobject]@{Name = "hubvaletrocas" ; is32bits = $false ; adminRights = $false ; type = "APP"}
+  #[pscustomobject]@{Name = "agendaservicos" ; is32bits = $false ; adminRights = $false ; type = "APP"}
+  #[pscustomobject]@{Name = "implantar" ; is32bits = $false ; adminRights = $false ; type = "APP"}
+  #[pscustomobject]@{Name = "erp-webapp" ; is32bits = $false ; adminRights = $false ; type = "APP"}
+  #[pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = $false ; adminRights = $false ; type = "APP"}
+  #[pscustomobject]@{Name = "nfe4" ; is32bits = $false ; adminRights = $true ; type = "APP"}
 )
 
 $microvixAPIs = @(
-  [pscustomobject]@{Name = "erpadmin" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "crm-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "otico-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "lgpdterceiros-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "agendaservicos-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "cobranca-linx-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "cobranca-extrator-catalogo-digital-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "fastpass-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "faturamentoservicosterceiros-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "imagensprodutos-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "relatorio-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "servicos-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "terceiros-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "giftcard-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "erpcore-api" ; is32bits = $false ; adminRights = $false }
-  [pscustomobject]@{Name = "nfe-api" ; is32bits = $false ; adminRights = $true }
+  [pscustomobject]@{Name = "erpadmin" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "crm-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "otico-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "lgpdterceiros-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "agendaservicos-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "cobranca-linx-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "cobranca-extrator-catalogo-digital-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "fastpass-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "faturamentoservicosterceiros-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "imagensprodutos-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "relatorio-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "servicos-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "terceiros-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "giftcard-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "erpcore-api" ; is32bits = $false ; adminRights = $false ; type = "API"; }
+  [pscustomobject]@{Name = "nfe-api" ; is32bits = $false ; adminRights = $true ; type = "API"; }
 
 )
 
-#Write-Output $allApps
 
 if ($isDev) {
   # merge lists - When is Dev. The script will create a base site and all the webapps
@@ -274,9 +357,11 @@ if ($isDev) {
     #$microvixAPIs
   }
   [string] $projectName = "API"
-  [string] $path = "${pathWebSite}\${projectName}"
   # Create  site with main server name
   $BindingPrimary = "${hostname}.${Domain}"
+  [string] $path = "${pathWebSite}\${BindingPrimary}"
+
+
   Write-Output @("
   Dev Default Site 
       Site name: ${projectName}
@@ -286,12 +371,11 @@ if ($isDev) {
   start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${BindingPrimary}" 
 
   foreach ($item in $allApps) {
-
     [string] $projectName = ($item).Name
-    [string] $path = "${pathWebSite}\${projectName}"
-    
     # Dynamic Vars
     $siteBinding = "${hostname}-${projectName}-${envName}.${Domain}"
+    $path = "${pathWebSite}\${siteBinding}"
+
 
     Write-Output @("
     Microvix Web: ${projectName}
@@ -303,8 +387,8 @@ if ($isDev) {
     ")
 
     # $ConfigCustomIdentity = If ($condition) { "true" } Else { "false" }
-
-    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" -appPool32Bits $item.is32bits -dotnetCLR $item.CLR -ManagedPipelineMode $item.ManagedPipeline -PurgeSites $true
+    
+    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" -startup "OnDemand" -appPool32Bits $item.is32bits -dotnetCLR $item.CLR -ManagedPipelineMode $item.ManagedPipeline -PurgeSites $true
     
   }
 } 
@@ -316,12 +400,9 @@ else {
   }
 
   [string] $projectName = ($item).Name
-  [string] $path = "${pathWebSite}\${projectName}"
   $siteBinding = "${projectName}-${envName}.${Domain}"
+  $path = "${pathWebSite}\${siteBinding}"
   
-  start-WebEnvironmentBuilder -projectName "${projectName}" -sitePath "${path}" -bindings "${siteBinding}" -CustomIdentity $false 
-
+  if ($type -eq "API") { start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" -startup "AlwaysRunning" -appPool32Bits $item.is32bits -dotnetCLR $item.CLR -ManagedPipelineMode $item.ManagedPipeline -PurgeSites $true }
+  if ($type -eq "APP") { start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" -startup "OnDemand" -appPool32Bits $item.is32bits -dotnetCLR $item.CLR -ManagedPipelineMode $item.ManagedPipeline -PurgeSites $true }
 }
-
-
-
