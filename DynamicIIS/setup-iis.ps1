@@ -57,6 +57,11 @@ function start-WebEnvironmentBuilder {
     # App Pool
     [bool]$appPool32Bits = $false,
 
+    # Config - Site
+    [bool]$setWebServerDefaults = $true,
+    [bool]$customTestLogPathEnabled = $false,
+    [string]$logsPath,
+
     # Purge Parametsr
     [bool]$PurgeDefaults = $true,
     [bool]$PurgeSites = $true
@@ -80,7 +85,7 @@ function start-WebEnvironmentBuilder {
       & $AppCmd  delete AppPool "${siteName}" | Out-Null
     }
   }
-  
+
   # Remove Defaults
   if ($PurgeDefaults) {
   
@@ -145,56 +150,69 @@ function start-WebEnvironmentBuilder {
     & $AppCmd set AppPool $siteName /recycling.periodicRestart.privateMemory:'10485760' /commit:apphost | Out-Null
   }
   
-  ## SET LOGS CONFIG
-  $LogValues = "Date,Time,ClientIP,UserName,SiteName,ComputerName,ServerIP,Method,UriStem,UriQuery,HttpStatus,Win32Status,BytesSent,BytesRecv,TimeTaken,ServerPort,UserAgent,Cookie,Referer,ProtocolVersion,Host,HttpSubStatus" 
-  $settings = @{ logFormat = "W3c"; enabled = $true; directory = $logsPath; period = "Hourly" ; localTimeRollover = "True" ; logExtFileFlags = "${logValues}" }
-  Set-ItemProperty "IIS:\Sites\$siteName" -name "logFile" -value $settings | Out-Null
+  if ($setWebServerDefaults) {
+    # Server Config
+    & $AppCmd unlock config /section:system.webServer/handlers | Out-Null
+    & $AppCmd unlock config /section:system.webServer/modules | Out-Null
+    & $AppCmd unlock config /section:system.webServer/asp | Out-Null
+
+    if ($customTestLogPathEnabled) {
+      $testLogPath = test-path -path $logsPath
+      If ($testLogPath -eq $false) {
+        new-item -type Directory -path $logsPath | Out-Null
+      }
+      ## SET LOGS CONFIG
+      $LogValues = "Date,Time,ClientIP,UserName,SiteName,ComputerName,ServerIP,Method,UriStem,UriQuery,HttpStatus,Win32Status,BytesSent,BytesRecv,TimeTaken,ServerPort,UserAgent,Cookie,Referer,ProtocolVersion,Host,HttpSubStatus" 
+      $settings = @{ logFormat = "W3c"; enabled = $true; directory = $logsPath; period = "Hourly" ; localTimeRollover = "True" ; logExtFileFlags = "${logValues}" }
+      Set-ItemProperty "IIS:\Sites\$siteName" -name "logFile" -value $settings | Out-Null
   
-  ## Custom Headers
-  #$logValuesCustom = @{logFieldName = 'X-Forwarded-For'; sourceName = 'X-Forwarded-For'; sourceType = 'RequestHeader' }
-  #Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST'  -filter "system.applicationHost/sites/site[@name="${siteName}"]/logFile/customFields" -name "." -value $logValuesCustom
+      ## Custom Headers
+      #$logValuesCustom = @{logFieldName = 'X-Forwarded-For'; sourceName = 'X-Forwarded-For'; sourceType = 'RequestHeader' }
+      #Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST'  -filter "system.applicationHost/sites/site[@name="${siteName}"]/logFile/customFields" -name "." -value $logValuesCustom
 
-}
+    }
+    else {
+      ## SET LOGS CONFIG
+      $LogValues = "Date,Time,ClientIP,UserName,SiteName,ComputerName,ServerIP,Method,UriStem,UriQuery,HttpStatus,Win32Status,BytesSent,BytesRecv,TimeTaken,ServerPort,UserAgent,Cookie,Referer,ProtocolVersion,Host,HttpSubStatus" 
+      $settings = @{ logFormat = "W3c"; enabled = $true; period = "Hourly" ; localTimeRollover = "True" ; logExtFileFlags = "${logValues}" }
+      Set-ItemProperty "IIS:\Sites\$siteName" -name "logFile" -value $settings | Out-Null
+  
+      ## Custom Headers
+      #$logValuesCustom = @{logFieldName = 'X-Forwarded-For'; sourceName = 'X-Forwarded-For'; sourceType = 'RequestHeader' }
+      #Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST'  -filter "system.applicationHost/sites/site[@name="${siteName}"]/logFile/customFields" -name "." -value $logValuesCustom
 
+    }
 
+    # ASP Classic Section "long live the King"
 
+    & $AppCmd set config -section:system.webServer/asp /scriptErrorSentToBrowser:'True' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /errorsToNTLog:'True' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /EnableParentPaths:'True' /commit:apphost | Out-Null
 
-if ($setWebServerDefaults) {
-  # Server Config
-  & $AppCmd unlock config /section:system.webServer/handlers | Out-Null
-  & $AppCmd unlock config /section:system.webServer/modules | Out-Null
-  & $AppCmd unlock config /section:system.webServer/asp | Out-Null
+    # TrackingID MS 2208240040004733 - MTA must be disabled. 
+    # Alterar isso potencializará problemas de performance em magnitudes inimaginaveis
+    & $AppCmd  set config -section:system.webServer/asp /comPlus.executeInMta:'False' /commit:apphost | Out-Null
 
-  $testLogPath = test-path -path $logsPath
-  If ($testLogPath -eq $false) {
-    new-item -type Directory -path $logsPath | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /Session.timeOut:'00:20:00' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /Limits.bufferingLimit:'10094304' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /Limits.maxRequestEntityAllowed:'2147483647' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /Limits.processorThreadMax:'400' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /Limits.scriptTimeout:'00:10:00' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /cache.scriptFileCacheSize:'0' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /cache.maxDiskTemplateCacheFiles:'0' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /cache.scriptEngineCacheMax:'0' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /cache.enableTypelibCache:'True' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/asp /cache.diskTemplateCacheDirectory:'c:\inetpub\temp\ASP Compiled Templates' /commit:apphost | Out-Null
+
+    & $AppCmd set config -section:system.webServer/urlCompression /doDynamicCompression:'false' /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/httpCompression /minFileSizeForComp:2700 /commit:apphost | Out-Null
+    & $AppCmd set config -section:system.webServer/httpCompression /maxDiskSpaceUsage:16000 /commit:apphost | Out-Null
   }
 
-  # ASP Classic Section "long live the King"
-
-  & $AppCmd set config -section:system.webServer/asp /scriptErrorSentToBrowser:'True' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /errorsToNTLog:'True' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /EnableParentPaths:'True' /commit:apphost | Out-Null
-
-  # TrackingID MS 2208240040004733 - MTA must be disabled. 
-  # Alterar isso potencializará problemas de performance em magnitudes inimaginaveis
-  & $AppCmd  set config -section:system.webServer/asp /comPlus.executeInMta:'False' /commit:apphost | Out-Null
-
-  & $AppCmd set config -section:system.webServer/asp /Session.timeOut:'00:20:00' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /Limits.bufferingLimit:'10094304' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /Limits.maxRequestEntityAllowed:'2147483647' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /Limits.processorThreadMax:'250' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /Limits.scriptTimeout:'00:10:00' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /cache.scriptFileCacheSize:'0' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /cache.maxDiskTemplateCacheFiles:'0' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /cache.scriptEngineCacheMax:'0' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /cache.enableTypelibCache:'True' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/asp /cache.diskTemplateCacheDirectory:'c:\inetpub\temp\ASP Compiled Templates' /commit:apphost | Out-Null
-
-  & $AppCmd set config -section:system.webServer/urlCompression /doDynamicCompression:'false' /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/httpCompression /minFileSizeForComp:2700 /commit:apphost | Out-Null
-  & $AppCmd set config -section:system.webServer/httpCompression /maxDiskSpaceUsage:16000 /commit:apphost | Out-Null
 }
+
+
+
 
 $microvixSites = @(
   [pscustomobject]@{Name = "crm" ; is32bits = "false" ; adminRights = "false" }
