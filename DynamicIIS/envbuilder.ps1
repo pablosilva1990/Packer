@@ -20,21 +20,33 @@
  .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.vmdev" -webPassword $SecurePassword -isDev $true
  
  .Example Microvix Web Server 
- .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.vmaceitacao" -webPassword $SecurePassword
+ $SecurePassword = ConvertTo-SecureString "Pa$$w0rdMicrovixSitesIIS" -AsPlainText -Force
+ .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -hostname devops -pathWebSite "c:\linx\devops" -webLogin "linxsaas\svc.vmaceitacao" -webPassword $SecurePassword
+ 
+ .EXAMPLE remove-WebEnvironmentBuilder
+  .\envbuilder.ps1 -EnvBuilderCleanUp $true -envName aceitacao -domain microvix.com.br -hostname devops -pathWebSite "c:\linx\devops"
+
 #>
 param (
-  [string] $pathWebSite = "c:\linx",
+  [string] $pathWebSite = "c:\linx" ,
+  [string] $logsPath = "c:\site\logs" ,
   [string] $HostName ,
   [string] $envName ,
   [string] $Domain ,
-  [string] $logsPath = "c:\site\logs",
-  [bool] $UseCustomUsername = $false,
+   
+  [bool] $setWebServerDefaults = $true ,
+  
+  [bool] $EnvBuilderPurgeDefaults = $true ,
+  [bool] $EnvBuilderPurgeSites = $false ,
+
+  [bool] $UseCustomUsername = $false ,
+  [string]$WebLogin ,
+  [securestring]$WebPassword ,
+
   [bool] $isDev = $false,
-  [bool] $PurgeDefaults = $true,
-  [bool] $setWebServerDefaults = $true,
-  [bool] $purgeSites = $false,
-  [string]$WebLogin,
-  [securestring]$WebPassword
+
+
+  [bool]$EnvBuilderCleanUp = $false
 
 )
 
@@ -285,6 +297,31 @@ function start-WebEnvironmentBuilder {
 
 }
 
+function remove-WebEnvironmentBuilder {
+  param (
+    # General Settings
+    [string]$siteName,
+    [string]$sitePath
+  )
+  
+  import-module WebAdministration
+  $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
+  write-output "Purging site: ${siteName}" 
+
+  if ((Test-Path "IIS:\sites\$siteName") -eq $true) {
+    # Delete site "Default Web Site"
+    write-output "Purging site ${siteName}" 
+    & $AppCmd delete site "${siteName}" | Out-Null 
+    remove-item -Path $sitePath -Force -Confirm:$false -Recurse
+  }
+   
+  if ((Test-Path "IIS:\AppPools\$siteName") -eq $true) {
+    # Delete site "Default Web Site"
+    & $AppCmd  delete AppPool "${siteName}" | Out-Null
+  }
+}
+
+
 
 $microvixSites = @(
   [pscustomobject]@{Name = "crm" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" ; startupMode = "OnDemand" }
@@ -321,6 +358,14 @@ $microvixAPIs = @(
   [pscustomobject]@{Name = "admfinanceiro" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "API" ; startupMode = "AlwaysRunning" }
 
 )
+
+if ($EnvBuilderCleanUp) {
+  [string] $projectName = ($item).Name
+  $siteBinding = "${projectName}-${envName}.${Domain}"
+  $path = "${pathWebSite}\${siteBinding}"
+  remove-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}"
+}
+
 
 
 if ($isDev) {
@@ -371,7 +416,7 @@ if ($isDev) {
         -appPool32Bits $item.is32bits `
         -dotnetCLR $item.CLR `
         -ManagedPipelineMode $item.ManagedPipeline `
-        -PurgeSites $true `
+        -PurgeSites $EnvBuilderPurgeSites `
         -CustomIdentity $True `
         -CustomIdentityLogin $($item.login) `
         -CustomIdentityPassowrd $($item.password)
@@ -382,7 +427,7 @@ if ($isDev) {
         -appPool32Bits $item.is32bits `
         -dotnetCLR $item.CLR `
         -ManagedPipelineMode $item.ManagedPipeline `
-        -PurgeSites $true 
+        -PurgeSites $EnvBuilderPurgeSites 
     }
     
   }
@@ -394,27 +439,30 @@ else {
     $microvixAPIs
   }
 
-  [string] $projectName = ($item).Name
-  $siteBinding = "${projectName}-${envName}.${Domain}"
-  $path = "${pathWebSite}\${siteBinding}"
+  foreach ($item in $allApps) {
+    [string] $projectName = ($item).Name
+    $siteBinding = "${projectName}-${envName}.${Domain}"
+    $path = "${pathWebSite}\${siteBinding}"
   
-  If ($($item.adminRights)) { 
-    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
-      -startup "$($item.startupMode)" `
-      -appPool32Bits $item.is32bits `
-      -dotnetCLR $item.CLR `
-      -ManagedPipelineMode $item.ManagedPipeline `
-      -PurgeSites $true `
-      -CustomIdentity $True `
-      -CustomIdentityLogin $($item.login) `
-      -CustomIdentityPassowrd $($item.password)
-  }      
-  Else { 
-    start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
-      -startup "$($item.startupMode)"`
-      -appPool32Bits $item.is32bits `
-      -dotnetCLR $item.CLR `
-      -ManagedPipelineMode $item.ManagedPipeline `
-      -PurgeSites $true 
+    If ($($item.adminRights)) { 
+      start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
+        -startup "$($item.startupMode)" `
+        -appPool32Bits $item.is32bits `
+        -dotnetCLR $item.CLR `
+        -ManagedPipelineMode $item.ManagedPipeline `
+        -PurgeSites $EnvBuilderPurgeSites `
+        -CustomIdentity $True `
+        -CustomIdentityLogin $($item.login) `
+        -CustomIdentityPassowrd $($item.password)
+    }      
+    Else { 
+      start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
+        -startup "$($item.startupMode)" `
+        -appPool32Bits $item.is32bits `
+        -dotnetCLR $item.CLR `
+        -ManagedPipelineMode $item.ManagedPipeline `
+        -PurgeSites $EnvBuilderPurgeSites 
+    }
   }
 }
+
