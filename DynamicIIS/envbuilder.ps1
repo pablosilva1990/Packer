@@ -173,6 +173,7 @@ function start-WebEnvironmentBuilder {
 
   }
   
+  ## Custom Identity
   if ($Customidentity -eq "True") {
     $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
     Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "processModel" -value $identity | Out-Null
@@ -194,6 +195,7 @@ function start-WebEnvironmentBuilder {
     & $AppCmd set AppPool $siteName /recycling.periodicRestart.privateMemory:'10485760' /commit:apphost | Out-Null
   }
   
+  ## Server Defaults
   if ($setWebServerDefaults) {
     # Server Config
     & $AppCmd unlock config /section:system.webServer/handlers | Out-Null
