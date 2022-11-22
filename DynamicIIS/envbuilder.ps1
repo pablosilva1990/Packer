@@ -16,8 +16,8 @@
   Pode usar para simbolizar um nome de portal também. Ex: 9090
 
  .Example Microvix DEV
- $SecurePassword = ConvertTo-SecureString "Pa$$w0rdMicrovixSitesIIS" -AsPlainText -Force
- .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.vmdev" -webPassword $SecurePassword -isDev $true
+ $SecurePassword = ConvertTo-SecureString "SAd213@1919_02" -AsPlainText -Force
+ .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -webPassword $SecurePassword -isDev $true -CsvImportList "C:\Temp\site-list.csv"
  
  .Example Microvix Web Server 
  $SecurePassword = ConvertTo-SecureString "Pa$$w0rdMicrovixSitesIIS" -AsPlainText -Force
@@ -33,6 +33,8 @@ param (
   [string] $HostName ,
   [string] $envName ,
   [string] $Domain ,
+
+  [string] $CsvImportList,
    
   [bool] $setWebServerDefaults = $true ,
   
@@ -57,12 +59,12 @@ function start-WebEnvironmentBuilder {
     [string]$sitePath,
 
     # Site and Pool Login
-    [bool]$CustomIdentity = $false,
+    [string]$CustomIdentity = "False",
     [string]$CustomIdentityLogin,
     [string]$CustomIdentityPassowrd,
 
     # App Pool
-    [bool]$appPool32Bits = $false,
+    [string]$appPool32Bits = "False",
     [string]$dotnetCLR = "v4.0", # Possible Values: "v4.0", "v2.0" or "" (its like No Mamaged Code)
     [string]$ManagedPipelineMode = "Integrated", # Possible Values: "Integrated" or "Classic"
     [string]$startup = "OnDemand",
@@ -161,7 +163,7 @@ function start-WebEnvironmentBuilder {
     $appPoolCombine = "${siteName}/"
     & $AppCmd set app "${appPoolCombine}" /applicationPool:$siteName | Out-Null
 
-    if (($isDev) -and ($siteName -like "*erp-mvx*")) {
+    if (($isDev) -and ($siteName -like "*erp-linx*")) {
       $PrivateDir = "C:\linx\${siteName}\private"
       If ((Test-Path $PrivateDir) -eq $false) {
         new-item -type Directory -path $PrivateDir | Out-Null
@@ -171,14 +173,14 @@ function start-WebEnvironmentBuilder {
 
   }
   
-  if ($Customidentity) {
+  if ($Customidentity -eq "True") {
     $identity = @{ identitytype = "SpecificUser"; username = "${CustomIdentityLogin}"; password = "${CustomIdentityPassowrd}" }
     Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "processModel" -value $identity | Out-Null
     & $AppCmd set AppPool $appPool /processModel.LoadUserProfile:'true' /commit:apphost | Out-Null
   }
 
   ## Application Pool Config 
-  if ($appPool32Bits) {
+  if ($appPool32Bits -eq "True") {
     Set-ItemProperty -Path "IIS:\AppPools\$siteName" -name "enable32BitAppOnWin64" -value $true | Out-Null
     # Recycling Defaults - x86 AppPool process
     & $AppCmd set AppPool $siteName /recycling.periodicRestart.memory:'3481600' | Out-Null
@@ -328,10 +330,9 @@ function remove-WebEnvironmentBuilder {
 
 #>
 $bulkImport = $true
-$importCsv = "C:\git\git-linx\Packer\DynamicIIS\site-list.csv"
-IF ($bulkImport){
-  $SitesMicrovix = import-csv $importCsv
-
+#$importCsv = "C:\git\git-linx\Packer\DynamicIIS\site-list.csv"
+IF ($bulkImport) {
+  $SitesMicrovix = import-csv $CsvImportList
 }
 
 
@@ -345,25 +346,6 @@ if ($EnvBuilderCleanUp) {
 
 
 if ($isDev) {
-
-  [string] $projectName = "API"
-  # Create  site with main server name
-  $BindingPrimary = "${hostname}-${projectName}.${Domain}"
-  [string] $path = "${pathWebSite}\${BindingPrimary}"
-
-  # Verbose
-  Write-Output @("
-  Dev Default Site 
-      Site name: ${projectName}
-      Site Path is: ${path} 
-      Binding: ${BindingPrimary}
-  ")
-  
-  start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${BindingPrimary}" `
-    -startup "OnDemand" `
-    -dotnetCLR "" `
-    -appPool32Bits $true `
-    -PurgeSites $true
 
   # merge lists - When is Dev. The script will create a base site and all the webapps
   $allApps = & { 
@@ -386,7 +368,7 @@ if ($isDev) {
       ManagedPipeline: $($item.ManagedPipeline)
     ")
 
-    If ($($item.adminRights)) { 
+    If ($($item.adminRights) -eq "True" ) { 
       start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
         -startup "$($item.startupMode)"`
         -appPool32Bits $item.is32bits `
@@ -394,8 +376,8 @@ if ($isDev) {
         -ManagedPipelineMode $item.ManagedPipeline `
         -PurgeSites $EnvBuilderPurgeSites `
         -CustomIdentity $True `
-        -CustomIdentityLogin $($item.login) `
-        -CustomIdentityPassowrd $($item.password)
+        -CustomIdentityLogin $WebLogin `
+        -CustomIdentityPassowrd $WebPassword
     }      
     Else { 
       start-WebEnvironmentBuilder -sitePath "${path}" -siteName "${siteBinding}" `
