@@ -29,3 +29,17 @@
 [pscustomobject]@{Name = "admfinanceiro" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "API" ; startupMode = "AlwaysRunning" }
 
 
+# Possible Values
+# is32bits              = $false or $true
+# adminRights           = $false or $true
+# login                 = Script Parameter: $WebLogin
+# Password              = Script Parameter: $webPassword
+# ManagedPipeline       = "Integrated" or "Classic"
+# CLR                   = "v4.0", "v2.0" or ""
+# type                  = "API" or "APP"
+# startupMode           = "AlwaysRunning" or "OnDemand"
+
+
+[pscustomobject]@{Name = "" ; is32bits = ; adminRights = ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "API" ; startupMode = "AlwaysRunning" }
+
+
