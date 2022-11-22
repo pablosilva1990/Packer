@@ -297,6 +297,7 @@ function start-WebEnvironmentBuilder {
 
 }
 
+
 function remove-WebEnvironmentBuilder {
   param (
     # General Settings
@@ -323,7 +324,7 @@ function remove-WebEnvironmentBuilder {
 
 
 
-$microvixSites = @(
+$SitesMicrovix = @(
   [pscustomobject]@{Name = "crm" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" ; startupMode = "OnDemand" }
   [pscustomobject]@{Name = "vendafacil" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; type = "APP" ; startupMode = "OnDemand" }
   [pscustomobject]@{Name = "erp-mvx" ; is32bits = $true ; adminRights = $true ; ManagedPipeline = "Classic" ; CLR = "v4.0" ; type = "APP" ; login = $WebLogin; password = $WebPassword ; startupMode = "OnDemand" }
@@ -336,9 +337,6 @@ $microvixSites = @(
   [pscustomobject]@{Name = "erp-webapp" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "" ; type = "APP" ; startupMode = "OnDemand" }
   [pscustomobject]@{Name = "recuperadorcupomfiscal" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" ; startupMode = "OnDemand" }
   [pscustomobject]@{Name = "nfe4" ; is32bits = $false ; adminRights = $true ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "APP" ; login = $WebLogin; password = $WebPassword ; startupMode = "OnDemand" }
-)
-
-$microvixAPIs = @(
   [pscustomobject]@{Name = "erpadmin" ; is32bits = $false ; adminRights = $false ; type = "API" ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
   [pscustomobject]@{Name = "crm-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
   [pscustomobject]@{Name = "otico-api" ; is32bits = $false ; adminRights = $false ; type = "API" ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
@@ -356,7 +354,6 @@ $microvixAPIs = @(
   [pscustomobject]@{Name = "erpcore-api" ; is32bits = $false ; adminRights = $false ; type = "API"; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; startupMode = "AlwaysRunning" }
   [pscustomobject]@{Name = "nfe-api" ; is32bits = $false ; adminRights = $true ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "API"; login = $WebLogin; password = $WebPassword ; startupMode = "AlwaysRunning" }
   [pscustomobject]@{Name = "admfinanceiro" ; is32bits = $false ; adminRights = $false ; ManagedPipeline = "Integrated" ; CLR = "v4.0" ; type = "API" ; startupMode = "AlwaysRunning" }
-
 )
 
 if ($EnvBuilderCleanUp) {
@@ -391,7 +388,7 @@ if ($isDev) {
 
   # merge lists - When is Dev. The script will create a base site and all the webapps
   $allApps = & { 
-    $microvixSites
+    $SitesMicrovix
   }
 
   foreach ($item in $allApps) {
@@ -435,8 +432,7 @@ if ($isDev) {
 else {
   # merge lists - When is not Dev. The script will create all sites needed
   $allApps = & { 
-    $microvixSites
-    $microvixAPIs
+    $SitesMicrovix
   }
 
   foreach ($item in $allApps) {

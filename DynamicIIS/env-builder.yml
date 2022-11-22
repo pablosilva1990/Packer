@@ -1,0 +1,20 @@
+IMAGEM -> Packer:
+  - Instalação DO IIS
+  - Configuração do crowdstrike
+  - SQL drivers
+
+Provisionamento - DEV:
+  - Automação do AD
+  - WinRM
+  - DNS
+  - NGINX -> Redirecionar o Trafego
+  - Configurações do IIS (criação da estrutura)
+  - Toda vez for adicionado uma nova API, tem que ser replicada em todas as VMs
+  - Publicação dos fontes
+  - Configurações de rotina:
+      - criar config_ambiente
+      - preparar o ambiente do lab com as novas definições
+      - Configuração do Banco
+
+Finaização:
+  - Acessos ok
