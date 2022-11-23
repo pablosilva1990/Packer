@@ -171,9 +171,6 @@ function start-EnvironmentBuilderApps {
   }
   
 
-
- 
-
 }
 
 function start-EnvironmentBuilderBase {
@@ -310,29 +307,30 @@ function start-EnvironmentBuilderBase {
 
 }
 
-
 function remove-EnvironmentBuilderApps {
   param (
     # General Settings
-    [string]$siteName,
-    [string]$sitePath
   )
   
   import-module WebAdministration
   $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
-  write-output "Purging site: ${siteName}" 
+  $sites = (Get-Website).name
+  
+  foreach ($siteName in $sites) {
 
-  if ((Test-Path "IIS:\sites\$siteName") -eq $true) {
-    # Delete site "Default Web Site"
-    write-output "Purging site ${siteName}" 
-    & $AppCmd delete site "${siteName}" | Out-Null 
-    remove-item -Path $sitePath -Force -Confirm:$false -Recurse
-  }
+    write-output "Purging site: ${siteName}" 
+
+    if ((Test-Path "IIS:\sites\$siteName") -eq $true) {
+      # Delete site "Default Web Site"
+      write-output "Purging site ${siteName}" 
+      & $AppCmd delete site "${siteName}" | Out-Null 
+    }
    
-  if ((Test-Path "IIS:\AppPools\$siteName") -eq $true) {
-    # Delete site "Default Web Site"
-    & $AppCmd  delete AppPool "${siteName}" | Out-Null
-  }
+    if ((Test-Path "IIS:\AppPools\$siteName") -eq $true) {
+      # Delete site "Default Web Site"
+      & $AppCmd  delete AppPool "${siteName}" | Out-Null
+    }
+  } 
 }
 
 
