@@ -42,6 +42,8 @@ param (
   [bool]$EnvBuilderCleanUp = $false
 
 )
+import-module WebAdministration
+$AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
 
 function start-EnvironmentBuilderApps {
   param (
@@ -66,8 +68,7 @@ function start-EnvironmentBuilderApps {
     [bool]$PurgeSiteFolder = $false
   )
   
-  import-module WebAdministration
-  $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
+
 
   #Dynamic variables
   $Bindings = "http/:80:${siteName}"
@@ -179,10 +180,6 @@ function start-EnvironmentBuilderBase {
     [bool]$configRequestFiltering = $true,
     [bool]$PurgeDefaults = $true
   )
-  
-  import-module WebAdministration
-  $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
-
 
   # Remove Defaults
   if ($PurgeDefaults) {
