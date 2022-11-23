@@ -3,14 +3,6 @@
 
  .Description
 
- .Parameter pathWebSite
-  Path Windows do site 
-
-  .Parameter dnsHostFqdn
-  Informe o DNS para configuracao so site
-
-  .Parameter UseCustomUsername
-
   .PARAMETER envName 
   Esse parametro pode ser aceitacao, prod, rc, hom, etc 
   Pode usar para simbolizar um nome de portal também. Ex: 9090
@@ -19,7 +11,7 @@
  .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -webPassword "SAd213@1919_02" -isDev $true -CsvImportList "C:\Temp\site-list.csv"
  
  .Example Microvix Web Server 
- .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -hostname devops -pathWebSite "c:\linx\devops" -webLogin "linxsaas\svc.vmaceitacao" -webPassword $SecurePassword
+ .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -hostname devops -pathWebSite "c:\linx\devops" -webLogin "linxsaas\svc.mvxdev" -webPassword "SAd213@1919_02"
  
  .EXAMPLE remove-WebEnvironmentBuilder
   .\envbuilder.ps1 -EnvBuilderCleanUp $true
@@ -169,6 +161,14 @@ function start-EnvironmentBuilderApps {
     & $AppCmd set AppPool $siteName /recycling.periodicRestart.privateMemory:'10485760' /commit:apphost | Out-Null
   }
   
+  Write-Output @("
+  Site: ${SiteName}
+  Site Path is: ${sitePath} 
+  Binding: ${Bindings}
+  32bits: ${appPool32Bits}
+  .NET CLR: ${dotnetCLR}
+  ManagedPipeline: ${ManagedPipelineMode}
+  ")
 
 }
 
@@ -321,7 +321,6 @@ function remove-EnvironmentBuilderApps {
 
     if ((Test-Path "IIS:\sites\$siteName") -eq $true) {
       # Delete site "Default Web Site"
-      write-output "Purging site ${siteName}" 
       & $AppCmd delete site "${siteName}" | Out-Null 
     }
    
@@ -332,17 +331,16 @@ function remove-EnvironmentBuilderApps {
   } 
 }
 
+if ($EnvBuilderCleanUp) {
+  remove-EnvironmentBuilderApps -sitePath 
+  break
+}
 
 #$importCsv = "C:\git\git-linx\Packer\DynamicIIS\site-list.csv"
 IF ($bulkImport) {
   $SitesMicrovix = import-csv $CsvImportList
 }
 
-
-if ($EnvBuilderCleanUp) {
-  remove-EnvironmentBuilderApps -sitePath 
-  break
-}
 
 if ($isDev) {
 
@@ -378,38 +376,19 @@ if ($isDev) {
     [string] $projectName = ($item).Name
     # Dynamic Vars
     $siteBinding = "${envName}-${projectName}-${hostname}.${Domain}"
-    $path = "${pathWebSite}\${siteBinding}"
+    $path = "${pathWebSite}\${envName}\${projectName}"
 
 
-    Write-Output @("
-    Microvix Web: ${projectName}
-      Site Path is: ${path} 
-      Binding: ${siteBinding}
-      32bits: $($item.is32bits)
-      .NET CLR: $($item.CLR)
-      ManagedPipeline: $($item.ManagedPipeline)
-    ")
-
-    If ($($item.adminRights) -eq "True" ) { 
-      start-EnvironmentBuilderApps -sitePath "${path}" -siteName "${siteBinding}" `
-        -startup "$($item.startupMode)"`
-        -appPool32Bits $item.is32bits `
-        -dotnetCLR $item.CLR `
-        -ManagedPipelineMode $item.ManagedPipeline `
-        -PurgeSites $EnvBuilderPurgeSites `
-        -CustomIdentity $True `
-        -CustomIdentityLogin $WebLogin `
-        -CustomIdentityPassowrd $WebPassword
-    }      
-    Else { 
-      start-EnvironmentBuilderApps -sitePath "${path}" -siteName "${siteBinding}" `
-        -startup "$($item.startupMode)" `
-        -appPool32Bits $item.is32bits `
-        -dotnetCLR $item.CLR `
-        -ManagedPipelineMode $item.ManagedPipeline `
-        -PurgeSites $EnvBuilderPurgeSites 
-    }
-    
+    start-EnvironmentBuilderApps `
+      -sitePath "${path}" `
+      -siteName "${siteBinding}" `
+      -startup "$($item.startupMode)" `
+      -appPool32Bits $item.is32bits `
+      -dotnetCLR $item.CLR `
+      -ManagedPipelineMode $item.ManagedPipeline `
+      -CustomIdentity $item.adminRights `
+      -CustomIdentityLogin $WebLogin `
+      -CustomIdentityPassowrd $WebPassword
   }
 } 
 else {
@@ -418,30 +397,33 @@ else {
     $SitesMicrovix
   }
 
+  ## Crite site ERP DEV 
+  start-EnvironmentBuilderApps `
+    -sitePath "${pathWebSite}\erp-linx-${hostname}.${Domain}" `
+    -siteName "erp-linx-${hostname}.${Domain}" `
+    -startup "OnDemand" `
+    -ManagedPipelineMode "Classic" `
+    -dotnetCLR "" `
+    -appPool32Bits $true `
+    -CustomIdentity $True `
+    -CustomIdentityLogin $WebLogin `
+    -CustomIdentityPassowrd $WebPassword
+
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
     $siteBinding = "${projectName}-${envName}.${Domain}"
     $path = "${pathWebSite}\${siteBinding}"
   
-    If ($($item.adminRights)) { 
-      start-EnvironmentBuilderApps -sitePath "${path}" -siteName "${siteBinding}" `
-        -startup "$($item.startupMode)" `
-        -appPool32Bits $item.is32bits `
-        -dotnetCLR $item.CLR `
-        -ManagedPipelineMode $item.ManagedPipeline `
-        -PurgeSites $EnvBuilderPurgeSites `
-        -CustomIdentity $True `
-        -CustomIdentityLogin $($item.login) `
-        -CustomIdentityPassowrd $($item.password)
-    }      
-    Else { 
-      start-EnvironmentBuilderApps -sitePath "${path}" -siteName "${siteBinding}" `
-        -startup "$($item.startupMode)" `
-        -appPool32Bits $item.is32bits `
-        -dotnetCLR $item.CLR `
-        -ManagedPipelineMode $item.ManagedPipeline `
-        -PurgeSites $EnvBuilderPurgeSites 
-    }
+    start-EnvironmentBuilderApps `
+      -sitePath "${path}" `
+      -siteName "${siteBinding}" `
+      -startup "$($item.startupMode)"`
+      -appPool32Bits $item.is32bits `
+      -dotnetCLR $item.CLR `
+      -ManagedPipelineMode $item.ManagedPipeline `
+      -CustomIdentity $item.adminRights `
+      -CustomIdentityLogin $WebLogin `
+      -CustomIdentityPassowrd $WebPassword
   }
 }
 
