@@ -16,11 +16,9 @@
   Pode usar para simbolizar um nome de portal também. Ex: 9090
 
  .Example Microvix DEV
- $SecurePassword = ConvertTo-SecureString "SAd213@1919_02" -AsPlainText -Force
- .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -webPassword $SecurePassword -isDev $true -CsvImportList "C:\Temp\site-list.csv"
+ .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -webPassword "SAd213@1919_02" -isDev $true -CsvImportList "C:\Temp\site-list.csv"
  
  .Example Microvix Web Server 
- $SecurePassword = ConvertTo-SecureString "Pa$$w0rdMicrovixSitesIIS" -AsPlainText -Force
  .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -hostname devops -pathWebSite "c:\linx\devops" -webLogin "linxsaas\svc.vmaceitacao" -webPassword $SecurePassword
  
  .EXAMPLE remove-WebEnvironmentBuilder
@@ -44,7 +42,7 @@ param (
 
   [bool] $UseCustomUsername = $false ,
   [string]$WebLogin ,
-  [securestring]$WebPassword ,
+  [string]$WebPassword ,
 
   [bool] $isDev = $false,
 
@@ -359,8 +357,8 @@ if ($isDev) {
     -dotnetCLR "" `
     -appPool32Bits $true `
     -CustomIdentity $True `
-    -CustomIdentityLogin $($item.login) `
-    -CustomIdentityPassowrd $($item.password)
+    -CustomIdentityLogin $WebLogin `
+    -CustomIdentityPassowrd $WebPassword
   
   ## Crite site LOGIN ERP DEV 
   start-EnvironmentBuilderApps `
@@ -371,8 +369,8 @@ if ($isDev) {
     -dotnetCLR "" `
     -appPool32Bits $true `
     -CustomIdentity $True `
-    -CustomIdentityLogin $($item.login) `
-    -CustomIdentityPassowrd $($item.password)
+    -CustomIdentityLogin $WebLogin `
+    -CustomIdentityPassowrd $WebPassword
 
   # merge lists - When is Dev. The script will create a base site and all the webapps
   $allApps = & { 
