@@ -24,7 +24,7 @@
  .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -hostname devops -pathWebSite "c:\linx\devops" -webLogin "linxsaas\svc.vmaceitacao" -webPassword $SecurePassword
  
  .EXAMPLE remove-WebEnvironmentBuilder
-  .\envbuilder.ps1 -EnvBuilderCleanUp $true -envName aceitacao -domain microvix.com.br -hostname devops -pathWebSite "c:\linx\devops"
+  .\envbuilder.ps1 -EnvBuilderCleanUp $true
 
 #>
 param (
@@ -35,6 +35,7 @@ param (
   [string] $Domain ,
 
   [string] $CsvImportList,
+  [bool]$bulkImport = $true,
    
   [bool] $setWebServerDefaults = $true ,
   
@@ -138,7 +139,7 @@ function start-EnvironmentBuilderApps {
     $appPoolCombine = "${siteName}/"
     & $AppCmd set app "${appPoolCombine}" /applicationPool:$siteName | Out-Null
 
-    if (($isDev) -and ($siteName -like "*erp-linx*")) {
+    if (($isDev) -and ($siteName -like "*linx*")) {
       $PrivateDir = "C:\linx\${siteName}\private"
       If ((Test-Path $PrivateDir) -eq $false) {
         new-item -type Directory -path $PrivateDir | Out-Null
@@ -334,11 +335,6 @@ function remove-EnvironmentBuilderApps {
 }
 
 
-<# Se precessa Lista 
- De finir variable e parametro no script envbuilder.ps1
-
-#>
-$bulkImport = $true
 #$importCsv = "C:\git\git-linx\Packer\DynamicIIS\site-list.csv"
 IF ($bulkImport) {
   $SitesMicrovix = import-csv $CsvImportList
@@ -346,25 +342,46 @@ IF ($bulkImport) {
 
 
 if ($EnvBuilderCleanUp) {
-  [string] $projectName = ($item).Name
-  $siteBinding = "${projectName}-${envName}.${Domain}"
-  $path = "${pathWebSite}\${siteBinding}"
-  remove-EnvironmentBuilderApps -sitePath "${path}" -siteName "${siteBinding}"
+  remove-EnvironmentBuilderApps -sitePath 
+  break
 }
 
-
+"${pathWebSite}\${siteBinding}"
 
 if ($isDev) {
+
+  ## Crite site ERP DEV 
+  start-EnvironmentBuilderApps `
+    -sitePath "${pathWebSite}\erp-linx-${hostname}.${Domain}" `
+    -siteName "erp-linx-${hostname}.${Domain}" `
+    -startup "OnDemand" `
+    -ManagedPipelineMode "Classic" `
+    -dotnetCLR "" `
+    -appPool32Bits $true `
+    -CustomIdentity $True `
+    -CustomIdentityLogin $($item.login) `
+    -CustomIdentityPassowrd $($item.password)
+  
+  ## Crite site LOGIN ERP DEV 
+  start-EnvironmentBuilderApps `
+    -sitePath "${pathWebSite}\login-${hostname}.${Domain}" `
+    -siteName "login-${hostname}.${Domain}" `
+    -startup "OnDemand" `
+    -ManagedPipelineMode "Classic" `
+    -dotnetCLR "" `
+    -appPool32Bits $true `
+    -CustomIdentity $True `
+    -CustomIdentityLogin $($item.login) `
+    -CustomIdentityPassowrd $($item.password)
 
   # merge lists - When is Dev. The script will create a base site and all the webapps
   $allApps = & { 
     $SitesMicrovix
   }
-
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
     # Dynamic Vars
-    $siteBinding = "${hostname}-${projectName}-${envName}.${Domain}"
+    $siteBinding = "${envName}-${projectName}-${hostname}.${Domain}"
     $path = "${pathWebSite}\${siteBinding}"
 
 
