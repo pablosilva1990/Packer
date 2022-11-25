@@ -11,7 +11,7 @@
  .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -webPassword "SAd213@1919_02" -isDev $true -CsvImportList "C:\Temp\site-list.csv"
  
  .Example Microvix Web Server 
- .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -hostname devops -pathWebSite "c:\linx\devops" -webLogin "linxsaas\svc.mvxdev" -webPassword "SAd213@1919_02"
+ .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -pathWebSite "c:\linx"  -CsvImportList "C:\Temp\site-list.csv" -webLogin "linxsaas\svc.mvxacpt" -webPassword
  
  .EXAMPLE remove-WebEnvironmentBuilder
   .\envbuilder.ps1 -EnvBuilderCleanUp $true
@@ -371,10 +371,8 @@ if ($isDev) {
   }
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
-    # Dynamic Vars
     $siteBinding = "${envName}-${projectName}-${hostname}.${Domain}"
     $path = "${pathWebSite}\${envName}\${projectName}"
-
 
     start-EnvironmentBuilderApps `
       -sitePath "${path}" `
@@ -394,10 +392,9 @@ else {
     $SitesMicrovix
   }
 
-  ## Crite site ERP DEV 
   start-EnvironmentBuilderApps `
-    -sitePath "${pathWebSite}\erp-linx-${hostname}.${Domain}" `
-    -siteName "erp-linx-${hostname}.${Domain}" `
+    -sitePath "${pathWebSite}\erp-${envName}.${Domain}" `
+    -siteName "erp-${envName}.${Domain}" `
     -startup "OnDemand" `
     -ManagedPipelineMode "Classic" `
     -dotnetCLR "" `
