@@ -1,20 +1,9 @@
 <#
- .Synopsis
+.Environment Builder - One Exec Microvix Process
 
- .Description
+.Synopsis
 
-  .PARAMETER envName 
-  Esse parametro pode ser aceitacao, prod, rc, hom, etc 
-  Pode usar para simbolizar um nome de portal também. Ex: 9090
-
- .Example Microvix DEV
- .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -webPassword "SAd213@1919_02" -isDev $true -CsvImportList "C:\Temp\site-list.csv"
- 
- .Example Microvix Web Server 
- .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -hostname devops -pathWebSite "c:\linx\devops" -webLogin "linxsaas\svc.mvxdev" -webPassword "SAd213@1919_02"
- 
- .EXAMPLE remove-WebEnvironmentBuilder
-  .\envbuilder.ps1 -EnvBuilderCleanUp $true
+.Description
 
 #>
 

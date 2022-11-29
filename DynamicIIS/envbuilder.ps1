@@ -8,10 +8,10 @@
   Pode usar para simbolizar um nome de portal também. Ex: 9090
 
  .Example Microvix DEV
- .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -webPassword "SAd213@1919_02" -isDev $true -CsvImportList "C:\Temp\site-list.csv"
+ .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -WebPass "SAd213@1919_02" -isDev $true -CsvImportList "C:\Temp\site-list.csv"
  
  .Example Microvix Web Server 
- .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -pathWebSite "c:\linx"  -CsvImportList "C:\Temp\site-list.csv" -webLogin "linxsaas\svc.mvxacpt" -webPassword
+ .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -pathWebSite "c:\linx"  -CsvImportList "C:\Temp\site-list.csv" -webLogin "linxsaas\svc.mvxacpt" -WebPass
  
  .EXAMPLE remove-WebEnvironmentBuilder
   .\envbuilder.ps1 -EnvBuilderCleanUp $true
@@ -23,12 +23,12 @@ param (
   [string] $HostName ,
   [string] $envName ,
   [string] $Domain ,
-  [string] $CsvImportList,
-  [bool]$bulkImport = $true,
+  [string] $CsvImportList = "C:temp\site-list.csv",
+  [bool] $bulkImport = $true,
    
   
   [string]$WebLogin ,
-  [string]$WebPassword ,
+  [string]$WebPass ,
 
   [bool] $isDev = $false,
 
@@ -36,14 +36,13 @@ param (
 
 )
 
-import-module .\envbuilder_module.ps1
+import-module .\envbuilder.psm1
 
 if ($EnvBuilderCleanUp) {
   remove-EnvironmentBuilderApps -sitePath 
   break
 }
 
-#$importCsv = "C:\git\git-linx\Packer\DynamicIIS\site-list.csv"
 IF ($bulkImport) {
   $SitesMicrovix = import-csv $CsvImportList
 }
@@ -61,7 +60,7 @@ if ($isDev) {
     -appPool32Bits $true `
     -CustomIdentity $True `
     -CustomIdentityLogin $WebLogin `
-    -CustomIdentityPassowrd $WebPassword
+    -CustomIdentityPassowrd $WebPass
   
   ## Crite site LOGIN ERP DEV 
   start-EnvironmentBuilderApps `
@@ -73,7 +72,7 @@ if ($isDev) {
     -appPool32Bits $true `
     -CustomIdentity $True `
     -CustomIdentityLogin $WebLogin `
-    -CustomIdentityPassowrd $WebPassword
+    -CustomIdentityPassowrd $WebPass
 
   # merge lists - When is Dev. The script will create a base site and all the webapps
   $allApps = & { 
@@ -93,7 +92,7 @@ if ($isDev) {
       -ManagedPipelineMode $item.ManagedPipeline `
       -CustomIdentity $item.adminRights `
       -CustomIdentityLogin $WebLogin `
-      -CustomIdentityPassowrd $WebPassword
+      -CustomIdentityPassowrd $WebPass
   }
 } 
 else {
@@ -111,7 +110,7 @@ else {
     -appPool32Bits $true `
     -CustomIdentity $True `
     -CustomIdentityLogin $WebLogin `
-    -CustomIdentityPassowrd $WebPassword
+    -CustomIdentityPassowrd $WebPass
 
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
@@ -127,7 +126,7 @@ else {
       -ManagedPipelineMode $item.ManagedPipeline `
       -CustomIdentity $item.adminRights `
       -CustomIdentityLogin $WebLogin `
-      -CustomIdentityPassowrd $WebPassword
+      -CustomIdentityPassowrd $WebPass
   }
 }
 
