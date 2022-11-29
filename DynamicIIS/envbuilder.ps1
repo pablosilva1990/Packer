@@ -23,7 +23,7 @@ param (
   [string] $HostName ,
   [string] $envName ,
   [string] $Domain ,
-  [string] $CsvImportList = "C:temp\site-list.csv",
+  [string] $CsvImportList = "C:\temp\site-list.csv",
   [bool] $bulkImport = $true,
    
   
