@@ -17,31 +17,7 @@
   .\envbuilder.ps1 -EnvBuilderCleanUp $true
 
 #>
-param (
-  [string] $pathWebSite = "c:\linx" ,
-  [string] $logsPath = "c:\site\logs" ,
-  [string] $HostName ,
-  [string] $envName ,
-  [string] $Domain ,
 
-  [string] $CsvImportList,
-  [bool]$bulkImport = $true,
-   
-  [bool] $setWebServerDefaults = $true ,
-  
-  [bool] $EnvBuilderPurgeDefaults = $true ,
-  [bool] $EnvBuilderPurgeSites = $false ,
-
-  [bool] $UseCustomUsername = $false ,
-  [string]$WebLogin ,
-  [string]$WebPassword ,
-
-  [bool] $isDev = $false,
-
-
-  [bool]$EnvBuilderCleanUp = $false
-
-)
 import-module WebAdministration
 $AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
 
