@@ -32,11 +32,6 @@ variable "managed_image_prefix" {
   type    = string
 }
 
-# Shared Gallery Vars
-variable "gallery_managed_image_prefix" {
-  type    = string
-  default = "MANAGEDIMAGE"
-}
 variable "gallery_name" {
   type    = string
   default = "SHAREDGALLERY-IMAGES"
@@ -69,7 +64,7 @@ source "azure-arm" "build" {
       subscription = "${var.subscription_id}"
       resource_group = "${var.managed_image_resource_group_name}"
       gallery_name = "${var.gallery_name}"
-      image_name = "${var.gallery_managed_image_prefix}"
+      image_name = "${var.managed_image_prefix}"
       image_version = "${var.image_version}"
       replication_regions = ["eastus"]
       #storage_account_type = "Standard_LRS"

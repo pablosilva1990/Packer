@@ -32,11 +32,11 @@ variable "managed_image_prefix" {
   type    = string
 }
 
-# Shared Gallery Vars
 variable "gallery_managed_image_prefix" {
-  type    = string
-  default = "MANAGEDIMAGE"
+  type = string
 }
+
+
 variable "gallery_name" {
   type    = string
   default = "SHAREDGALLERY-IMAGES"

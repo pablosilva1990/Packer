@@ -32,11 +32,10 @@ variable "managed_image_prefix" {
   type    = string
 }
 
-# Shared Gallery Vars
 variable "gallery_managed_image_prefix" {
-  type    = string
-  default = "MANAGEDIMAGE"
+  type = string
 }
+
 variable "gallery_name" {
   type    = string
   default = "SHAREDGALLERY-IMAGES"
@@ -56,9 +55,9 @@ source "azure-arm" "build" {
   tenant_id                         = "${var.tenant_id}"
   vm_size                           = "standard_F2s_v2"
   communicator                      = "winrm"
-  image_offer                       = "WindowsServer"
-  image_publisher                   = "MicrosoftWindowsServer"
-  image_sku                         = "2019-Datacenter"
+  image_offer                       = "SQL2016SP1-WS2016"
+  image_publisher                   = "MicrosoftSQLServer"
+  image_sku                         = "sqldev"
   os_type                           = "Windows"
   winrm_insecure                    = true
   winrm_timeout                     = "5m"
@@ -69,7 +68,7 @@ source "azure-arm" "build" {
       subscription = "${var.subscription_id}"
       resource_group = "${var.managed_image_resource_group_name}"
       gallery_name = "${var.gallery_name}"
-      image_name = "${var.gallery_managed_image_prefix}"
+      image_name = "${var.managed_image_prefix}"
       image_version = "${var.image_version}"
       replication_regions = ["eastus"]
       #storage_account_type = "Standard_LRS"
@@ -100,6 +99,10 @@ build {
 
   provisioner "powershell" {
     script = "sql-base.ps1"
+  }
+
+  provisioner "powershell" {
+    script = "base-srv-mvx.ps1"
   }
 
   provisioner "windows-restart" {

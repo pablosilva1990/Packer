@@ -128,6 +128,18 @@ else {
     -CustomIdentityLogin $WebLogin `
     -CustomIdentityPassowrd $WebPass
 
+  ## Crite site LOGIN ERP  
+  start-EnvironmentBuilderApps `
+    -sitePath "${pathWebSite}\login-${hostname}.${Domain}" `
+    -siteName "login-${envName}.${Domain}" `
+    -startup "OnDemand" `
+    -ManagedPipelineMode "Classic" `
+    -dotnetCLR "" `
+    -appPool32Bits $true `
+    -CustomIdentity $True `
+    -CustomIdentityLogin $WebLogin `
+    -CustomIdentityPassowrd $WebPass
+
   foreach ($item in $allApps) {
     [string] $projectName = ($item).Name
     $siteBinding = "${projectName}-${envName}.${Domain}"
