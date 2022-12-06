@@ -8,10 +8,17 @@
   Pode usar para simbolizar um nome de portal também. Ex: 9090
 
  .ServerBuilder Microvix
- .\envbuilder.ps1  
+ .\envbuilder.ps1  -EnvServerBuilder $true
 
  .Example Microvix DEV
- .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -WebPass "SAd213@1919_02" -isDev $true -CsvImportList "C:\Temp\site-list.csv"
+  
+ # EXP Clientes
+    .\envbuilder.ps1 -envName 9040 -domain microvix.com.br -hostname expclientes `
+      -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -WebPass "SAd213@1919_02" -isDev $true `
+      -CsvImportList "C:\Temp\site-list.csv"
+    .\envbuilder.ps1 -envName 9049 -domain microvix.com.br -hostname expclientes `
+      -pathWebSite "c:\linx" -webLogin "linxsaas\svc.mvxdev" -WebPass "SAd213@1919_02" -isDev $true `
+       -CsvImportList "C:\Temp\site-list.csv"
  
  .Example Microvix Web Server 
  .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -pathWebSite "c:\linx"  -CsvImportList "C:\Temp\site-list.csv" -webLogin "linxsaas\svc.mvxacpt" -WebPass
