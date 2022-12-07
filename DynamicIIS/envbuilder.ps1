@@ -21,7 +21,12 @@
        -CsvImportList "C:\Temp\site-list.csv"
  
  .Example Microvix Web Server 
- .\envbuilder.ps1 -envName aceitacao -domain microvix.com.br -pathWebSite "c:\linx"  -CsvImportList "C:\Temp\site-list.csv" -webLogin "linxsaas\svc.mvxacpt" -WebPass
+ 
+  # ACEITACAO
+ .\envbuilder.ps1 -envName "aceitacao" -domain microvix.com.br -pathWebSite "c:\linx"  -CsvImportList "C:\Temp\site-list.csv" -webLogin "linxsaas\svc.mvxacpt" -WebPass
+
+  # HOMOLOGACAO
+  .\envbuilder.ps1 -envName "homologacao" -domain "microvix.com.br" -pathWebSite "c:\linx"  -CsvImportList "C:\Temp\site-list.csv" -webLogin "linxsaas\svc.mvxhom" -WebPass
  
  .EXAMPLE remove-WebEnvironmentBuilder
   .\envbuilder.ps1 -EnvBuilderCleanUp $true
@@ -130,7 +135,7 @@ else {
 
   ## Crite site LOGIN ERP  
   start-EnvironmentBuilderApps `
-    -sitePath "${pathWebSite}\login-${hostname}.${Domain}" `
+    -sitePath "${pathWebSite}\login-${envName}.${Domain}" `
     -siteName "login-${envName}.${Domain}" `
     -startup "OnDemand" `
     -ManagedPipelineMode "Classic" `
