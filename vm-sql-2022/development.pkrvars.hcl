@@ -1,11 +1,11 @@
 variable "vm_offer" {
   type    = string
-  default = "sqldev-gen2"
+  default = ""
 }
 
 variable "vm_sku" {
   type    = string
-  default = "sqldev-gen2"
+  default = ""
 }
 
 

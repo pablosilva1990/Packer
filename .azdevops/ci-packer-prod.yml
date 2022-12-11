@@ -56,6 +56,7 @@ steps:
       targetType: "inline"
       script: |
         packer build -force  \
+          -var-file="prod.pkrvars.hcl" \
           -var "managed_image_prefix=$(MANAGED_IMAGE_PREFIX)" \
           -var "gallery_managed_image_prefix=$(MANAGED_IMAGE_PREFIX)" \
           -var "gallery_name=$(AZUREGALLERYNAME)" \
