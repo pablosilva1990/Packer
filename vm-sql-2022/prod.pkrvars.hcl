@@ -1,11 +1,2 @@
-variable "vm_offer" {
-  type    = string
-  default = "sql2022-ws2022"
-}
-
-variable "vm_sku" {
-  type    = string
-  default = "standard-gen2"
-}
-
-
+vm_offer = "sql2022-ws2022"
+vm_sku = "standard-gen2"

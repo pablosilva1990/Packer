@@ -110,10 +110,6 @@ build {
     script = "sql-base.ps1"
   }
 
-  provisioner "powershell" {
-    script = "base-srv-mvx.ps1"
-  }
-
   provisioner "windows-restart" {
     restart_check_command = "powershell -command \"& {Write-Output 'restarted.'}\""
   }
