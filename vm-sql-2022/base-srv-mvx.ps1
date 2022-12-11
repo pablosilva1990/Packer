@@ -2,8 +2,9 @@ Write-Host 'Chocolatey Steps'
 Install-PackageProvider Nuget -ForceBootstrap -Force -Confirm:$false
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 choco feature disable -n=showDownloadProgress; choco feature enable -n=allowGlobalConfirmation
-choco install notepadplusplus -y --force --force-dependencies --ignore-checksums ; choco install 7zip -y --force --force-dependencies --ignore-checksums
-choco install procdump -y --ignore-checksums ; choco install debugdiagnostic -y --ignore-checksums
+choco install notepadplusplus -y --force --force-dependencies --ignore-checksums
+choco install 7zip -y --force --force-dependencies --ignore-checksums
+choco install procdump -y --ignore-checksums ; 
 
 write-Host 'UAC - Disabled'
 New-ItemProperty -Path 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\policies\\system' -Name 'EnableLUA' -PropertyType DWord -Value 0 -Force
@@ -16,7 +17,6 @@ Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Comp
 
 # Start Windows Update
 Set-Service -Name wuauserv -StartupType Manual
-
 
 # TCP/IP clients ports range
 netsh int ipv4 set dynamicport tcp start=10000 num=54000

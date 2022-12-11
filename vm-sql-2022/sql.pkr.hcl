@@ -11,6 +11,7 @@ variable "subscription_id" {
   type    = string
   default = "${env("ARM_SUBSCRIPTION_ID")}"
 }
+
 variable "tenant_id" {
   type    = string
   default = "${env("ARM_TENANT_ID")}"
@@ -53,9 +54,9 @@ source "azure-arm" "build" {
   tenant_id                         = "${var.tenant_id}"
   vm_size                           = "standard_F2s_v2"
   communicator                      = "winrm"
-  image_offer                       = "SQL2016SP1-WS2016"
   image_publisher                   = "MicrosoftSQLServer"
-  image_sku                         = "sqldev"
+  image_offer                       = "${var.vm_offer}"
+  image_sku                         = "${var.vm_sku}"
   os_type                           = "Windows"
   winrm_insecure                    = true
   winrm_timeout                     = "5m"
