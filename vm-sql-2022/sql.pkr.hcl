@@ -45,6 +45,16 @@ variable "image_version" {
   default = "1.0.0"
 }
 
+variable "vm_offer" {
+  type    = string
+}
+
+variable "vm_sku" {
+  type    = string
+}
+
+
+
 source "azure-arm" "build" {
 
   build_resource_group_name         = "${var.build_resource_group_name}"
