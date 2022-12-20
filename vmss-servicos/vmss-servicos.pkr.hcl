@@ -98,10 +98,6 @@ build {
   }
 
   provisioner "powershell" {
-    script = "base-srv-sec.ps1"
-  }
-
-  provisioner "powershell" {
     script = "vmss-iis-config.ps1"
   }
   

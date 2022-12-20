@@ -103,10 +103,6 @@ build {
   }
 
   provisioner "powershell" {
-    script = "base-srv-sec.ps1"
-  }
-
-  provisioner "powershell" {
     script = "erp-iis-config.ps1"
   }
   
