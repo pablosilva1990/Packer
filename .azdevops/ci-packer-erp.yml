@@ -43,7 +43,7 @@ stages:
     - template: ci-main.yml
       parameters:
         WORK_PATH: "vm/erp"
-        PackerVarFile: "production.pkrvars.hcl"
+        PackerVarFile: "prod.pkrvars.hcl"
         ManagedImagePrefix: "mvx_prod_erp_ws2k19"
         AzureGalleryName: "gallary_mvx_prod_shared_eastus"
         AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
