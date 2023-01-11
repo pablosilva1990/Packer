@@ -16,7 +16,7 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - template: .azdevops/ci-main.yml
+    - template: ci-main.yml
       parameters: 
         WORK_PATH: "vm/erp"
         PackerVarFile: "development.pkrvars.hcl"
@@ -40,7 +40,7 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - template: .azdevops/ci-main.yml
+    - template: ci-main.yml
       parameters:
         WORK_PATH: "vm/erp"
         PackerVarFile: "production.pkrvars.hcl"
