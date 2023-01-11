@@ -1,0 +1,22 @@
+trigger: none
+name: 3.0.$(Rev:r)
+
+variables:
+  - group: PACKER_DEV
+
+pool:
+  vmImage: ubuntu-latest
+
+extends:
+  template: ci-main.yml
+  parameters:
+    ManagedImagePrefix: mvx_development_web_ws2k19
+    AzureGalleryName: gallary_mvx_development_shared_eastus
+    AzureResourceGroupTemplate: rg-mvx-development-shared-eastus
+    WORK_PATH: Packer/vm/web
+    TempAzureResouceGroup: rg-mvx-development-shared-eastus 
+    imageVersion: $(Build.BuildNumber)
+
+# TODO: retirar esse RG de temp para um dedicado. 
+
+

@@ -1,0 +1,176 @@
+parameters:
+  - name: PACKER_RELEASE
+    type: string 
+    default: "1.8.5"
+    
+  - name: imageVersion
+    type: string
+    default: "1.0.0"
+    displayName: Packer Managed Image Version
+
+  - name: ManagedImagePrefix
+    type: string
+    default: mvx_prod_erp_$(version)
+    displayName: Packer - Managed Image Prefix 
+
+  - name: AzureGalleryName
+    type: string
+    displayName:  Azure Compute  Galery
+
+  - name: AzureResourceGroupTemplate
+    type: string 
+    displayName: Resource Group to store Images
+
+  - name: TempAzureResouceGroup
+    type: string 
+    displayName: Temp Packer's Resource Group 
+
+
+  - name: WORK_PATH
+    type: string
+    displayName: Path to Packer Module
+
+  - name: A
+    type: string
+    displayName: A 
+
+
+
+  
+steps:
+
+  - task: Bash@3
+    inputs:
+      targetType: "inline"
+      script: |
+        wget https://releases.hashicorp.com/packer/${{ parameters.PACKER_RELEASE }}/packer_${{ parameters.PACKER_RELEASE }}_linux_amd64.zip
+        unzip packer_${{ parameters.PACKER_RELEASE }}_linux_amd64.zip
+        sudo mv packer /usr/local/bin
+    displayName: PACKER - INSTALL
+
+  - task: Bash@3
+    inputs:
+      workingDirectory: ${{ parameters.WORK_PATH }}
+      targetType: "inline"
+      script: |
+        ls -lR
+    displayName: Checking - List Files
+
+  - task: Bash@3
+    inputs:
+      workingDirectory: ${{ parameters.WORK_PATH }}
+      targetType: "inline"
+      script: |
+        echo "MANAGED_IMAGE_PREFIX "${{ parameters.ManagedImagePrefix }}"
+        echo "Image_version :" 
+        echo "AZUREGALLERYNAME " $AZUREGALLERYNAME
+        echo "AZURE_RESOURCE_GROUP_TEMPLATE: " $AZURE_RESOURCE_GROUP_TEMPLATE
+        echo "Azure Authentication"
+        echo "Client ID: " $CLIENT_ID
+        echo "Subscription ID: " $SUBSCRIPTION_ID
+        echo "Tenant ID: " $TENANT_ID
+    displayName: Checking - Variables
+
+  - task: Bash@3
+    inputs:
+      workingDirectory: $(WORK_PATH)
+      targetType: "inline"
+      script: |
+        packer build -force  \
+          -var-file="development.pkrvars.hcl" \
+          -var "build_resource_group_name=$(build_resource_group_name)" \
+          -var "managed_image_prefix=${{ parameters.ManagedImagePrefix }}" \
+          -var "gallery_managed_image_prefix=${{ parameters.ManagedImagePrefix }}" \
+          -var "gallery_name=$(AZUREGALLERYNAME)" \
+          -var "managed_image_resource_group_name=$(AZURE_RESOURCE_GROUP_TEMPLATE)" \
+          -var "image_version=$(Build.BuildNumber)" .
+    env:
+      PKR_VAR_client_id: ${{ parameters.CLIENT_ID }}
+      PKR_VAR_client_secret: ${{ parameters.CLIENT_SECRET }}
+      PKR_VAR_subscription_id: ${{ parameters.SUBSCRIPTION_ID }}
+      PKR_VAR_tenant: ${{ parameters.TENANT_ID }}
+    displayName: PACKER - BUILD
+
+
+
+
+AzureGalleryName
+
+
+
+
+
+        
+  # - ${{ each parameter in parameters.artifactsToPublish }}:
+  #     - task: CopyFiles@2
+  #       displayName: "Copy Files from ${{ parameter.Key }} to: $(Build.ArtifactStagingDirectory)"
+  #       inputs:
+  #         SourceFolder: ${{ parameter.value }}
+  #         Contents: "**"
+  #         TargetFolder: "$(Build.ArtifactStagingDirectory)/${{ parameter.Key }}"
+
+  #     - publish: "$(Build.ArtifactStagingDirectory)/${{ parameter.Key }}"
+  #       artifact: ${{ parameter.Key }}
+  #       displayName: "Publish Artifact: ${{ parameter.Key }}"
+
+  # - ${{ if eq(parameters.npm, true) }}:
+  #     - task: Npm@1
+  #       displayName: 'npm install'
+  #       inputs:
+  #         verbose: false
+  # - ${{ each parameter in parameters.env }}:
+  #     - task: Npm@1
+  #       displayName: 'npm custom'
+  #       inputs:
+  #         command: custom
+  #         verbose: false
+  #         customCommand: 'run build -- --mode ${{ parameter.value }} --dest ${{ parameter.key }}'
+
+  #     - task: CopyFiles@2
+  #       displayName: 'Copy Files to: ${{ parameter.key }}'
+  #       inputs:
+  #         Contents: |
+  #           web.config
+  #           App.Release.config
+  #         TargetFolder: ${{ parameter.key }}
+
+  #     - task: CopyFiles@2
+  #       displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
+  #       inputs:
+  #         SourceFolder: ${{ parameter.key }}
+  #         TargetFolder: '$(build.artifactstagingdirectory)/${{ parameter.key }}'
+
+  #     - publish: "$(Build.ArtifactStagingDirectory)/${{ parameter.Key }}"
+  #       artifact: ${{ parameter.Key }}
+  #       displayName: "Publish Artifact: ${{ parameter.Key }}"
+
+  # - ${{ if eq(parameters.console, true) }}:
+  #     - powershell: |
+  #         Write-Host "Build Console"
+  #       displayName: 'Build Console'
+
+  # - ${{ each parameter in parameters.SolutionPath }}:  
+  #     - task: NuGetCommand@2
+  #       displayName: "NuGet restore ${{ parameter.key }}"
+  #       inputs:
+  #         restoreSolution: ${{ parameter.value }}
+
+  # - ${{ each parameter in parameters.csproj }}:  
+  #     - task: CmdLine@1
+  #       displayName: 'Run dotnet.exe - ${{ parameter.key }}'
+  #       inputs:
+  #         filename: dotnet.exe
+  #         arguments: 'publish -c $(BuildConfiguration) -r win-x64 --self-contained $(SelfContained)'
+  #         workingFolder: ${{ parameter.value }}
+
+  # - ${{ each parameter in parameters.ConsoleArtifacts }}:
+  #     - task: CopyFiles@2
+  #       displayName: "Copy Files from ${{ parameter.Key }} to: $(Build.ArtifactStagingDirectory)"
+  #       inputs:
+  #         SourceFolder: ${{ parameter.value }}
+  #         Contents: "**"
+  #         TargetFolder: "$(Build.ArtifactStagingDirectory)/${{ parameter.Key }}"
+
+  #     - publish: "$(Build.ArtifactStagingDirectory)/${{ parameter.Key }}"
+  #       artifact: ${{ parameter.Key }}
+  #       displayName: "Publish Artifact: ${{ parameter.Key }}"
