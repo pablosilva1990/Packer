@@ -19,8 +19,8 @@ stages:
     - template: ci-main.yml
       parameters: 
         WORK_PATH: "vm/modelo" # MUDE o PATH
-        PackerVarFile: "development.pkrvars.hcl"
         ManagedImagePrefix: "mvx_dev_modelo" # MUDE O nome da definition
+        PackerVarFile: "development.pkrvars.hcl"
         AzureGalleryName: "gallary_mvx_development_shared_eastus"
         AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
         TempAzureResouceGroup: "rg-mvx-development-shared-eastus" # TODO: Criar o RG de TEMP
@@ -43,8 +43,8 @@ stages:
     - template: ci-main.yml
       parameters:
         WORK_PATH: "vm/modelo" # MUDE o PATH
-        PackerVarFile: "prod.pkrvars.hcl"
         ManagedImagePrefix: "mvx_prod_modelo" # MUDE O nome da definition
+        PackerVarFile: "prod.pkrvars.hcl"
         AzureGalleryName: "gallary_mvx_prod_shared_eastus"
         AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
         TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
