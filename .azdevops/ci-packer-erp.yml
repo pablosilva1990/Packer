@@ -5,53 +5,50 @@ pool:
   vmImage: ubuntu-latest
 
 stages:
+  - stage: Development
 
-- stage: Development
+    variables:
+      - group: PACKER_DEV
 
-  variables: 
-  - group: PACKER_DEV
+    jobs:
+      - job: Packer
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - template: ci-main.yml
+            parameters:
+              WORK_PATH: "vm/erp"
+              ManagedImagePrefix: "mvx_dev_erp_ws2k19"
+              PackerVarFile: "development.pkrvars.hcl"
+              AzureGalleryName: "gallary_mvx_development_shared_eastus"
+              AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
+              TempAzureResouceGroup: "rg-mvx-development-shared-eastus" # TODO: Criar o RG de TEMP
+              imageVersion: $(Build.BuildNumber)
+              CLIENT_ID: $(CLIENT_ID)
+              CLIENT_SECRET: $(CLIENT_SECRET)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+              TENANT_ID: $(TENANT_ID)
 
-  jobs:
-  - job: Packer
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - template: ci-main.yml
-      parameters: 
-        WORK_PATH: "vm/erp"
-        ManagedImagePrefix: "mvx_dev_erp_ws2k19"
-        PackerVarFile: "development.pkrvars.hcl"
-        AzureGalleryName: "gallary_mvx_development_shared_eastus"
-        AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
-        TempAzureResouceGroup: "rg-mvx-development-shared-eastus" # TODO: Criar o RG de TEMP
-        imageVersion: $(Build.BuildNumber)
-        CLIENT_ID: $(CLIENT_ID)
-        CLIENT_SECRET: $(CLIENT_SECRET)
-        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-        TENANT_ID: $(TENANT_ID)
+  - stage: Production
 
-- stage: Production
+    variables:
+      - group: PACKER_PROD
 
-  variables: 
-  - group: PACKER_PROD
-  
-  jobs:
-  - job: Packer
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - template: ci-main.yml
-      parameters:
-        WORK_PATH: "vm/erp"
-        ManagedImagePrefix: "mvx_prod_erp_ws2k19"
-        PackerVarFile: "prod.pkrvars.hcl"
-        AzureGalleryName: "gallary_mvx_prod_shared_eastus"
-        AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
-        TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
-        imageVersion: $(Build.BuildNumber)
-        CLIENT_ID: $(CLIENT_ID)
-        CLIENT_SECRET: $(CLIENT_SECRET)
-        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-        TENANT_ID: $(TENANT_ID)
-
-
+    jobs:
+      - job: Packer
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - template: ci-main.yml
+            parameters:
+              WORK_PATH: "vm/erp"
+              ManagedImagePrefix: "mvx_prod_erp_ws2k19"
+              PackerVarFile: "prod.pkrvars.hcl"
+              AzureGalleryName: "gallary_mvx_prod_shared_eastus"
+              AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
+              TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
+              imageVersion: $(Build.BuildNumber)
+              CLIENT_ID: $(CLIENT_ID)
+              CLIENT_SECRET: $(CLIENT_SECRET)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+              TENANT_ID: $(TENANT_ID)
