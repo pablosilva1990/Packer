@@ -9,7 +9,7 @@ stages:
 - stage: Development
 
   variables: 
-    group: PACKER_DEV
+  - group: PACKER_DEV
 
   jobs:
   - job: Packer
@@ -33,7 +33,7 @@ stages:
 - stage: Production
 
   variables: 
-    group: PACKER_PROD
+  - group: PACKER_PROD
   
   jobs:
   - job: Packer
