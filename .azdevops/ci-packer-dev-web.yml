@@ -10,12 +10,17 @@ pool:
 extends:
   template: ci-main.yml
   parameters:
-    ManagedImagePrefix: mvx_development_web_ws2k19
-    AzureGalleryName: gallary_mvx_development_shared_eastus
-    AzureResourceGroupTemplate: rg-mvx-development-shared-eastus
-    WORK_PATH: Packer/vm/web
-    TempAzureResouceGroup: rg-mvx-development-shared-eastus 
+    ManagedImagePrefix: "mvx_development_web_ws2k19"
+    AzureGalleryName: "gallary_mvx_development_shared_eastus"
+    AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
+    WORK_PATH: "Packer/vm/web"
+    TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
     imageVersion: $(Build.BuildNumber)
+    PackerVarFile: "development.pkrvars.hcl"
+    CLIENT_ID: $(CLIENT_ID)
+    CLIENT_SECRET: $(CLIENT_SECRET)
+    SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+    TENANT_ID: $(TENANT_ID)
 
 # TODO: retirar esse RG de temp para um dedicado. 
 
