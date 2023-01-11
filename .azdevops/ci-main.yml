@@ -83,7 +83,7 @@ steps:
 
   - task: Bash@3
     inputs:
-      workingDirectory: $(WORK_PATH)
+      workingDirectory: ${{ parameters.WORK_PATH }}
       targetType: "inline"
       script: |
         packer build -force  \
