@@ -101,17 +101,9 @@ build {
   provisioner "powershell" {
     script = "base-srv-mvx.ps1"
   }
-
-  provisioner "powershell" {
-    script = "erp-iis-config.ps1"
-  }
   
   provisioner "powershell" {
     script = "erp-iis-logs-v2.ps1"
-  }
-
-  provisioner "powershell" {
-    script = "erp-iis-DLLs.ps1"
   }
 
   provisioner "powershell" {
