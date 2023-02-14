@@ -1,6 +1,8 @@
 $uri = "https://stgmvxdevops.blob.core.windows.net/files/Windows/WindowsCsFalcon.zip"
 $filePath = "c:\temp\WindowsCsFalcon.zip"
 
+New-Item "c:\temp" -Type Directory
+
 Invoke-WebRequest -Uri $uri -OutFile $filePath
 
 Expand-Archive -LiteralPath "C:\temp\WindowsCsFalcon.zip" -DestinationPath "C:\temp"
