@@ -1,0 +1,57 @@
+trigger: none
+name: 3.0.$(Rev:r)
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+
+- stage: Development
+
+  variables: 
+  - group: PACKER_DEV
+
+  jobs:
+  - job: Packer
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: ci-main.yml
+      parameters: 
+        WORK_PATH: "vm/nfe" # MUDE o PATH
+        ManagedImagePrefix: "mvx_dev_nfe" # MUDE O nome da definition
+        PackerVarFile: "development.pkrvars.hcl"
+        AzureGalleryName: "gallary_mvx_development_shared_eastus"
+        AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
+        TempAzureResouceGroup: "rg-mvx-development-shared-eastus" # TODO: Criar o RG de TEMP
+        imageVersion: $(Build.BuildNumber)
+        CLIENT_ID: $(CLIENT_ID)
+        CLIENT_SECRET: $(CLIENT_SECRET)
+        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+        TENANT_ID: $(TENANT_ID)
+
+- stage: Production
+
+  variables: 
+  - group: PACKER_PROD
+  
+  jobs:
+  - job: Packer
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: ci-main.yml
+      parameters:
+        WORK_PATH: "vm/nfe" # MUDE o PATH
+        ManagedImagePrefix: "mvx_prod_nfe" # MUDE O nome da definition
+        PackerVarFile: "prod.pkrvars.hcl"
+        AzureGalleryName: "gallary_mvx_prod_shared_eastus"
+        AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
+        TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
+        imageVersion: $(Build.BuildNumber)
+        CLIENT_ID: $(CLIENT_ID)
+        CLIENT_SECRET: $(CLIENT_SECRET)
+        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+        TENANT_ID: $(TENANT_ID)
+
+
