@@ -1,3 +1,5 @@
+#iiscryptocli /backup backup.reg /template "C:\temp\MyServers.ictpl" /reboot
+
 # Habilita TLS 1.0 e 1.1
 Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client' -Name 'Enabled' -Value '1'
 Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Name 'Enabled' -Value '1'
