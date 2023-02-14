@@ -42,8 +42,8 @@ stages:
     steps:
     - template: ci-main.yml
       parameters:
-        WORK_PATH: "vm/nfe" # MUDE o PATH
-        ManagedImagePrefix: "mvx_prod_nfe" # MUDE O nome da definition
+        WORK_PATH: "vm/nfe" 
+        ManagedImagePrefix: "mvx_prod_nfe"
         PackerVarFile: "prod.pkrvars.hcl"
         AzureGalleryName: "gallary_mvx_prod_shared_eastus"
         AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
@@ -53,5 +53,3 @@ stages:
         CLIENT_SECRET: $(CLIENT_SECRET)
         SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
         TENANT_ID: $(TENANT_ID)
-
-
