@@ -6,11 +6,19 @@ choco feature disable -n=showDownloadProgress; choco feature enable -n=allowGlob
 # Install Apps with Choco
 choco install notepadplusplus -y --force --force-dependencies --ignore-checksums ; 
 choco install 7zip -y --force --force-dependencies --ignore-checksums ;
+choco install treesizefree -y --ignore-checksums ;
+choco install git -y --ignore-checksums ;
 
 # Install MS SQL Driver Client
-choco install sql2012.nativeclient -y --ignore-checksums 
+choco install sqlserver-cmdlineutils -y --ignore-checksums ;
+choco install sql2012.nativeclient -y --ignore-checksums ;
+choco install MSAccess2010-redist-x86 -y --ignore-checksums ;
+
 # sysinternals, procdump, logparser
-choco install procdump -y --ignore-checksums ; choco install debugdiagnostic -y --ignore-checksums
+choco install procdump -y --ignore-checksums ; 
+choco install debugdiagnostic -y --ignore-checksums ;
+choco install logparser -y --ignore-checksums ;
+choco install urlrewrite -y --ignore-checksums ;
 
 write-Host 'UAC - Disabled'
 New-ItemProperty -Path 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\policies\\system' -Name 'EnableLUA' -PropertyType DWord -Value 0 -Force
