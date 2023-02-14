@@ -23,7 +23,7 @@ stages:
         PackerVarFile: "development.pkrvars.hcl"
         AzureGalleryName: "gallary_mvx_development_shared_eastus"
         AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
-        TempAzureResouceGroup: "rg-mvx-development-shared-eastus" # TODO: Criar o RG de TEMP
+        TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
         imageVersion: $(Build.BuildNumber)
         CLIENT_ID: $(CLIENT_ID)
         CLIENT_SECRET: $(CLIENT_SECRET)

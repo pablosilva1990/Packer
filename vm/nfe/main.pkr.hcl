@@ -21,41 +21,52 @@ variable "WorkingDirectory" {
   type    = string
   default = "${env("System_DefaultWorkingDirectory")}"
 }
+
 variable "build_resource_group_name" {
   type    = string
   default = "temp-packerBuild"
 }
+
 variable "managed_image_resource_group_name" {
   type    = string
 }
+
 variable "managed_image_prefix" {
   type    = string
 }
+
 variable "gallery_managed_image_prefix" {
   type = string
 }
+
 variable "gallery_name" {
   type    = string
   default = "SHAREDGALLERY-IMAGES"
 }
+
 variable "image_version" {
   type    = string
   default = "1.0.0"
 }
 
 source "azure-arm" "build" {
-
   build_resource_group_name         = "${var.build_resource_group_name}"
-  client_id                         = "${var.client_id}"
-  client_secret                     = "${var.client_secret}"
+
   subscription_id                   = "${var.subscription_id}"
   tenant_id                         = "${var.tenant_id}"
+  client_id                         = "${var.client_id}"
+  client_secret                     = "${var.client_secret}"
+  
+  managed_image_name                 = "${var.managed_image_prefix}"
+  managed_image_resource_group_name  = "${var.managed_image_resource_group_name}"
+  managed_image_storage_account_type = "Premium_LRS"
   vm_size                           = "standard_F2s_v2"
-  communicator                      = "winrm"
+  os_type                           = "Windows"
   image_offer                       = "WindowsServer"
   image_publisher                   = "MicrosoftWindowsServer"
-  image_sku                         = "2019-Datacenter"
-  os_type                           = "Windows"
+  image_sku                         = "2019-datacenter"
+    
+  communicator                      = "winrm"
   winrm_insecure                    = true
   winrm_timeout                     = "5m"
   winrm_use_ssl                     = true
@@ -68,12 +79,7 @@ source "azure-arm" "build" {
       image_name = "${var.gallery_managed_image_prefix}"
       image_version = "${var.image_version}"
       replication_regions = ["eastus"]
-      #storage_account_type = "Standard_LRS"
   }
-
-  managed_image_name                 = "${var.managed_image_prefix}"
-  managed_image_resource_group_name  = "${var.managed_image_resource_group_name}"
-  managed_image_storage_account_type = "Premium_LRS"
 
   azure_tags = {
     environment 		  = "Packer"
@@ -108,6 +114,10 @@ build {
 
   provisioner "powershell" {
     script = "disable-defender.ps1"
+  }
+
+  provisioner "powershell" {
+    script = "enable-tls1.1-1.0.ps1"
   }
 
   provisioner "windows-restart" {
