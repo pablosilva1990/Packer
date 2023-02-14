@@ -12,7 +12,7 @@ extends:
   parameters:
     WORK_PATH: "vm/web"
     ManagedImagePrefix: "mvx_development_web_ws2k19"
-    AzureGalleryName: "gallary_mvx_development_shared_eastus"
+    AzureGalleryName: "gallery_mvx_development_shared_eastus"
     AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
     TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
     imageVersion: $(Build.BuildNumber)

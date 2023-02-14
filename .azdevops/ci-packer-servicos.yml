@@ -21,7 +21,7 @@ stages:
         WORK_PATH: "vmss/servicos"
         ManagedImagePrefix: "mvx_dev_vmss_servicos"
         PackerVarFile: "development.pkrvars.hcl"
-        AzureGalleryName: "gallary_mvx_development_shared_eastus"
+        AzureGalleryName: "gallery_mvx_development_shared_eastus"
         AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
         TempAzureResouceGroup: "rg-mvx-development-shared-eastus" # TODO: Criar o RG de TEMP
         imageVersion: $(Build.BuildNumber)
@@ -45,7 +45,7 @@ stages:
         WORK_PATH: "vmss/servicos"
         ManagedImagePrefix: "mvx_prod_vmss_servicos"
         PackerVarFile: "prod.pkrvars.hcl"
-        AzureGalleryName: "gallary_mvx_prod_shared_eastus"
+        AzureGalleryName: "gallery_mvx_prod_shared_eastus"
         AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
         TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
         imageVersion: $(Build.BuildNumber)
