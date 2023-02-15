@@ -21,7 +21,7 @@ stages:
         WORK_PATH: "vm/modelo" # MUDE o PATH
         ManagedImagePrefix: "mvx_dev_modelo" # MUDE O nome da definition
         PackerVarFile: "development.pkrvars.hcl"
-        AzureGalleryName: "gallery_mvx_development_shared_eastus"
+        # AzureGalleryName: "gallery_mvx_development_shared_eastus"
         AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
         TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
         imageVersion: $(Build.BuildNumber)
@@ -45,7 +45,7 @@ stages:
         WORK_PATH: "vm/modelo" # MUDE o PATH
         ManagedImagePrefix: "mvx_prod_modelo" # MUDE O nome da definition
         PackerVarFile: "prod.pkrvars.hcl"
-        AzureGalleryName: "gallery_mvx_prod_shared_eastus"
+        # AzureGalleryName: "gallery_mvx_prod_shared_eastus"
         AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
         TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
         imageVersion: $(Build.BuildNumber)
