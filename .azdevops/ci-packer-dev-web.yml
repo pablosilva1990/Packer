@@ -1,23 +1,55 @@
 trigger: none
 name: 3.0.$(Rev:r)
 
-variables:
-  - group: PACKER_DEV
-
 pool:
   vmImage: ubuntu-latest
 
-extends:
-  template: ci-main.yml
-  parameters:
-    WORK_PATH: "vm/web"
-    ManagedImagePrefix: "mvx_development_web_ws2k19"
-    #AzureGalleryName: "gallery_mvx_development_shared_eastus"
-    AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
-    TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
-    imageVersion: $(Build.BuildNumber)
-    PackerVarFile: "development.pkrvars.hcl"
-    CLIENT_ID: $(CLIENT_ID)
-    CLIENT_SECRET: $(CLIENT_SECRET)
-    SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-    TENANT_ID: $(TENANT_ID)
+stages:
+
+- stage: Development
+
+  variables: 
+  - group: PACKER_DEV
+
+  jobs:
+  - job: Packer
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: ci-main.yml
+      parameters: 
+        WORK_PATH: "vm/web" # MUDE o PATH
+        ManagedImagePrefix: "mvx_dev_web" # MUDE O nome da definition
+        PackerVarFile: "development.pkrvars.hcl"
+        #AzureGalleryName: "gallery_mvx_development_shared_eastus"
+        AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
+        TempAzureResouceGroup: "rg-mvx-development-packer-temp"
+        imageVersion: $(Build.BuildNumber)
+        CLIENT_ID: $(CLIENT_ID)
+        CLIENT_SECRET: $(CLIENT_SECRET)
+        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+        TENANT_ID: $(TENANT_ID)
+
+- stage: Production
+
+  variables: 
+  - group: PACKER_PROD
+  
+  jobs:
+  - job: Packer
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: ci-main.yml
+      parameters:
+        WORK_PATH: "vm/web" 
+        ManagedImagePrefix: "mvx_prod_web"
+        PackerVarFile: "prod.pkrvars.hcl"
+        #AzureGalleryName: "gallery_mvx_prod_shared_eastus"
+        AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
+        TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
+        imageVersion: $(Build.BuildNumber)
+        CLIENT_ID: $(CLIENT_ID)
+        CLIENT_SECRET: $(CLIENT_SECRET)
+        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+        TENANT_ID: $(TENANT_ID)
