@@ -32,23 +32,22 @@ variable "managed_image_prefix" {
   type    = string
 }
 
-variable "gallery_managed_image_prefix" {
-  type = string
-}
-
-
-variable "gallery_name" {
-  type    = string
-  default = "SHAREDGALLERY-IMAGES"
-}
 variable "image_version" {
   type    = string
   default = "1.0.0"
 }
 
+# variable "gallery_managed_image_prefix" {
+#   type = string
+# }
+# 
+# 
+# variable "gallery_name" {
+#   type    = string
+#   default = "SHAREDGALLERY-IMAGES"
+# }
 
 source "azure-arm" "build" {
-
   build_resource_group_name         = "${var.build_resource_group_name}"
   client_id                         = "${var.client_id}"
   client_secret                     = "${var.client_secret}"
@@ -58,22 +57,22 @@ source "azure-arm" "build" {
   communicator                      = "winrm"
   image_offer                       = "WindowsServer"
   image_publisher                   = "MicrosoftWindowsServer"
-  image_sku                         = "2019-Datacenter"
+  image_sku                         = "2022-datacenter-azure-edition"
   os_type                           = "Windows"
   winrm_insecure                    = true
   winrm_timeout                     = "5m"
   winrm_use_ssl                     = true
   winrm_username                    = "packer"
 
-  shared_image_gallery_destination {
-      subscription = "${var.subscription_id}"
-      resource_group = "${var.managed_image_resource_group_name}"
-      gallery_name = "${var.gallery_name}"
-      image_name = "${var.gallery_managed_image_prefix}"
-      image_version = "${var.image_version}"
-      replication_regions = ["eastus"]
-      #storage_account_type = "Standard_LRS"
-  }
+  # shared_image_gallery_destination {
+  #     subscription = "${var.subscription_id}"
+  #     resource_group = "${var.managed_image_resource_group_name}"
+  #     gallery_name = "${var.gallery_name}"
+  #     image_name = "${var.gallery_managed_image_prefix}"
+  #     image_version = "${var.image_version}"
+  #     replication_regions = ["eastus"]
+  #     #storage_account_type = "Standard_LRS"
+  # }
 
   managed_image_name                 = "${var.managed_image_prefix}"
   managed_image_resource_group_name  = "${var.managed_image_resource_group_name}"
