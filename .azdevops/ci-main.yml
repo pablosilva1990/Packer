@@ -89,7 +89,6 @@ steps:
           -var-file="${{ parameters.PackerVarFile}}" \
           -var "build_resource_group_name=${{ parameters.TempAzureResouceGroup }}" \
           -var "managed_image_prefix=${{ parameters.ManagedImagePrefix }}" \
-          -var "gallery_managed_image_prefix=${{ parameters.ManagedImagePrefix }}" \
           -var "managed_image_resource_group_name=${{ parameters.AzureResourceGroupTemplate}}" \
           -var "image_version=${{ parameters.imageVersion }}" .
     env:
