@@ -35,14 +35,14 @@ variable "managed_image_prefix" {
   type    = string
 }
 
-variable "gallery_managed_image_prefix" {
-  type = string
-}
+#variable "gallery_managed_image_prefix" {
+#  type = string
+#}
 
-variable "gallery_name" {
-  type    = string
-  default = "SHAREDGALLERY-IMAGES"
-}
+#variable "gallery_name" {
+#  type    = string
+#  default = "SHAREDGALLERY-IMAGES"
+#}
 
 variable "image_version" {
   type    = string
@@ -57,14 +57,16 @@ source "azure-arm" "build" {
   client_id                         = "${var.client_id}"
   client_secret                     = "${var.client_secret}"
   
-  managed_image_name                 = "${var.managed_image_prefix}"
+  #managed_image_name                 = "${var.managed_image_prefix}"
+  managed_image_name                 = "${var.managed_image_prefix}_${var.image_version}"
   managed_image_resource_group_name  = "${var.managed_image_resource_group_name}"
   managed_image_storage_account_type = "Premium_LRS"
+
   vm_size                           = "standard_F2s_v2"
   os_type                           = "Windows"
   image_offer                       = "WindowsServer"
   image_publisher                   = "MicrosoftWindowsServer"
-  image_sku                         = "2019-datacenter"
+  image_sku                         = "2022-datacenter-azure-edition"
     
   communicator                      = "winrm"
   winrm_insecure                    = true
@@ -72,14 +74,14 @@ source "azure-arm" "build" {
   winrm_use_ssl                     = true
   winrm_username                    = "packer"
 
-  shared_image_gallery_destination {
-      subscription = "${var.subscription_id}"
-      resource_group = "${var.managed_image_resource_group_name}"
-      gallery_name = "${var.gallery_name}"
-      image_name = "${var.gallery_managed_image_prefix}"
-      image_version = "${var.image_version}"
-      replication_regions = ["eastus"]
-  }
+  #shared_image_gallery_destination {
+  #    subscription = "${var.subscription_id}"
+  #    resource_group = "${var.managed_image_resource_group_name}"
+  #    gallery_name = "${var.gallery_name}"
+  #    image_name = "${var.gallery_managed_image_prefix}"
+  #    image_version = "${var.image_version}"
+  #    replication_regions = ["eastus"]
+  #}
 
   azure_tags = {
     environment 		  = "Packer"

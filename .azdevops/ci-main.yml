@@ -13,9 +13,9 @@ parameters:
     default: mvx_prod_erp_$(version)
     displayName: Packer - Managed Image Prefix 
 
-  - name: AzureGalleryName
-    type: string
-    displayName:  Azure Compute  Galery
+#  - name: AzureGalleryName
+#    type: string
+#    displayName:  Azure Compute  Galery
 
   - name: AzureResourceGroupTemplate
     type: string 
@@ -73,7 +73,6 @@ steps:
       script: |
         echo "MANAGED_IMAGE_PREFIX ${{ parameters.ManagedImagePrefix }}"
         echo "Image_version: ${{ parameters.imageVersion }}" 
-        echo "AZUREGALLERYNAME: ${{ parameters.AzureGalleryName}}"
         echo "AZURE_RESOURCE_GROUP_TEMPLATE: ${{ parameters.AzureResourceGroupTemplate}}"
         echo "Azure Authentication"
         echo "Client ID: ${{ parameters.CLIENT_ID }}"
@@ -91,7 +90,6 @@ steps:
           -var "build_resource_group_name=${{ parameters.TempAzureResouceGroup }}" \
           -var "managed_image_prefix=${{ parameters.ManagedImagePrefix }}" \
           -var "gallery_managed_image_prefix=${{ parameters.ManagedImagePrefix }}" \
-          -var "gallery_name=${{ parameters.AzureGalleryName}}" \
           -var "managed_image_resource_group_name=${{ parameters.AzureResourceGroupTemplate}}" \
           -var "image_version=${{ parameters.imageVersion }}" .
     env:
@@ -100,10 +98,6 @@ steps:
       PKR_VAR_subscription_id: ${{ parameters.SUBSCRIPTION_ID }}
       PKR_VAR_tenant: ${{ parameters.TENANT_ID }}
     displayName: PACKER - BUILD
-
-
-
-
         
   # - ${{ each parameter in parameters.artifactsToPublish }}:
   #     - task: CopyFiles@2
