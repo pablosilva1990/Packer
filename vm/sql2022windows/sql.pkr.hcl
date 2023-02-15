@@ -110,6 +110,14 @@ build {
     script = "sql-base.ps1"
   }
 
+  provisioner "powershell" {
+    script = "crowdstrike.ps1"
+  }
+
+  provisioner "powershell" {
+    script = "winrm.ps1"
+  }
+
   provisioner "windows-restart" {
     restart_check_command = "powershell -command \"& {Write-Output 'restarted.'}\""
   }

@@ -101,6 +101,14 @@ build {
   provisioner "powershell" {
     script = "base-srv-mvx.ps1"
   }
+
+  provisioner "powershell" {
+    script = "crowdstrike.ps1"
+  }
+
+  provisioner "powershell" {
+    script = "winrm.ps1"
+  }
   
   provisioner "powershell" {
     script = "erp-iis-logs-v2.ps1"

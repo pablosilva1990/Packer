@@ -103,6 +103,18 @@ build {
   }
 
   provisioner "powershell" {
+    script = "crowdstrike.ps1"
+  }
+
+  provisioner "powershell" {
+    script = "winrm.ps1"
+  }
+
+  provisioner "powershell" {
+    script = "disable-defender.ps1"
+  }
+
+  provisioner "powershell" {
     script = "erp-iis-config.ps1"
   }
   
