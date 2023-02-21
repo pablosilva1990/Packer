@@ -48,6 +48,9 @@ netsh int ipv4 set dynamicport tcp start=10000 num=54000
 # Install WebDeploy
 choco install webdeploy -y --ignore-checksums 
 
+# Install Url Rewrite
+choco install urlrewrite -y --ignore-checksums
+
 # Default directory Linx
 new-item -type Directory /linx
 
