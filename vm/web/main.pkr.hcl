@@ -98,7 +98,7 @@ build {
   }
 
   provisioner "powershell" {
-    script = "base-srv-mvx.ps1"
+    script = "base-microvix.ps1"
   }
 
   provisioner "powershell" {
@@ -108,13 +108,17 @@ build {
   provisioner "powershell" {
     script = "winrm.ps1"
   }
+
+  provisioner "powershell" {
+    script = "dependencies.ps1"
+  }
   
   provisioner "powershell" {
-    script = "erp-iis-logs-v2.ps1"
+    script = "log-format.ps1"
   }
 
   provisioner "powershell" {
-    script = "erp-iis-requestFiltering.ps1"
+    script = "RequestFiltering.ps1"
   }
 
   provisioner "windows-restart" {
