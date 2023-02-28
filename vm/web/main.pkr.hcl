@@ -78,7 +78,7 @@ source "azure-arm" "build" {
   #     #storage_account_type = "Standard_LRS"
   # }
 
-  managed_image_name                 = "${var.managed_image_prefix}"
+  managed_image_name                 = "${var.managed_image_prefix}_${var.image_version}"
   managed_image_resource_group_name  = "${var.managed_image_resource_group_name}"
   managed_image_storage_account_type = "Premium_LRS"
 
