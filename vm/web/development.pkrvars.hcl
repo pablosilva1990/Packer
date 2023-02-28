@@ -1,1 +1,1 @@
-vm_size = "standard_b2s"
+vm_size = "standard_b2ms"
