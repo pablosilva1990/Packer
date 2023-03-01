@@ -49,6 +49,11 @@ variable "image_version" {
   default = "1.0.0"
 }
 
+variable "vm_size" {
+  type    = string
+  default = "standard_F2s_v2"
+}
+
 source "azure-arm" "build" {
   build_resource_group_name         = "${var.build_resource_group_name}"
 
@@ -62,7 +67,7 @@ source "azure-arm" "build" {
   managed_image_resource_group_name  = "${var.managed_image_resource_group_name}"
   managed_image_storage_account_type = "Premium_LRS"
 
-  vm_size                           = "standard_F2s_v2"
+  vm_size                           = "${var.vm_size}"
   os_type                           = "Windows"
   image_offer                       = "WindowsServer"
   image_publisher                   = "MicrosoftWindowsServer"

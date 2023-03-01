@@ -37,6 +37,11 @@ variable "image_version" {
   default = "1.0.0"
 }
 
+variable "vm_size" {
+  type    = string
+  default = "standard_F2s_v2"
+}
+
 # variable "gallery_managed_image_prefix" {
 #   type = string
 # }
@@ -52,7 +57,7 @@ source "azure-arm" "build" {
   client_secret                     = "${var.client_secret}"
   subscription_id                   = "${var.subscription_id}"
   tenant_id                         = "${var.tenant_id}"
-  vm_size                           = "standard_F2s_v2"
+  vm_size                           = "${var.vm_size}"
   communicator                      = "winrm"
   image_offer                       = "WindowsServer"
   image_publisher                   = "MicrosoftWindowsServer"

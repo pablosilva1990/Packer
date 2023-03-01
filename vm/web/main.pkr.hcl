@@ -21,13 +21,16 @@ variable "WorkingDirectory" {
   type    = string
   default = "${env("System_DefaultWorkingDirectory")}"
 }
+
 variable "build_resource_group_name" {
   type    = string
   default = "temp-packerBuild"
 }
+
 variable "managed_image_resource_group_name" {
   type    = string
 }
+
 variable "managed_image_prefix" {
   type    = string
 }
@@ -36,6 +39,7 @@ variable "image_version" {
   type    = string
   default = "1.0.0"
 }
+
 variable "vm_size" {
   type    = string
   default = "standard_F2s_v2"
