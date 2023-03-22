@@ -126,10 +126,6 @@ build {
   }
 
   provisioner "powershell" {
-    script = "erp-iis-DLLs.ps1"
-  }
-
-  provisioner "powershell" {
     script = "erp-iis-requestFiltering.ps1"
   }
 
