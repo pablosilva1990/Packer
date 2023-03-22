@@ -111,7 +111,7 @@ build {
   }
 
   provisioner "powershell" {
-    script = "sysprep.ps1"
+    script = "scripts/sysprep.ps1"
     max_retries = 2
   }
 
