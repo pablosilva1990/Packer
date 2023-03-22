@@ -11,10 +11,10 @@ new-item -type Directory /upload
 
 # Cria sites 
 $siteList = @(
-  [pscustomobject]@{Name = 'ERP_PROD_1' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx04.microvix.com.br' }
-  [pscustomobject]@{Name = 'ERP_PROD_2' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx02.microvix.com.br' }
-  [pscustomobject]@{Name = 'ERP_PROD_3' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx03.microvix.com.br' }
-  [pscustomobject]@{Name = 'ERP_RC_1'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:linx-rc.microvix.com.br' }
+  [pscustomobject]@{Name = 'linx.microvix.com.br' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx.microvix.com.br' }
+  [pscustomobject]@{Name = 'linx02.microvix.com.br' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx02.microvix.com.br' }
+  [pscustomobject]@{Name = 'linx03.microvix.com.br' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx03.microvix.com.br' }
+  [pscustomobject]@{Name = 'linx-rc.microvix.com.br'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:linx-rc.microvix.com.br' }
 ) 
 # Configure Site ERP SLOT 
 Foreach ($item in $siteList) {
