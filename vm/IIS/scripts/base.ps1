@@ -23,6 +23,9 @@ Install-WindowsFeature `
     Web-Request-Monitor, Web-Mgmt-Tools, Web-Scripting-Tools
 
 
+# AppCMD
+$AppCmd = "$env:WinDir\system32\inetsrv\AppCmd.exe"
+
 # Delete site "Default Web Site"
 & $AppCmd delete site "Default Web Site"
 
