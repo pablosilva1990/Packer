@@ -53,5 +53,3 @@ stages:
         CLIENT_SECRET: $(CLIENT_SECRET)
         SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
         TENANT_ID: $(TENANT_ID)
-
-
