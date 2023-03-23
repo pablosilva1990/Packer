@@ -1,0 +1,5 @@
+vm_size = "standard_b2ms"
+managed_image_prefix = "mvx_dev_fiscalflow_client"
+managed_image_resource_group_name = "rg-mvx-development-shared-eastus"
+build_resource_group_name = "rg-mvx-development-packer-temp"
+FiscalFlowClientURL = "https://share.linx.com.br/download/attachments/383069339/client-2.7.3.0-x64.deb"

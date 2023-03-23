@@ -1,0 +1,57 @@
+trigger: none
+name: 3.0.$(Rev:r)
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  WORK_PATH: "vm/fiscalflow-client"
+  ImageName: "IIS"
+  Environment: "mvx"
+  FiscalFlowClientVersion: "2.7.3.0"
+  FiscalFlowClientURL: "https://share.linx.com.br/download/attachments/383069339/client-2.7.3.0-x64.deb"
+
+stages:
+  - stage: Development
+
+    variables:
+      - group: PACKER_DEV
+
+    jobs:
+      - job: Packer
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - template: ci-main.yml
+            parameters:
+              WORK_PATH: $(WORK_PATH)
+              PackerVarFile: "development.pkrvars.hcl"
+              AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
+              TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
+              imageVersion: $(FiscalFlowClientVersion)
+              CLIENT_ID: $(CLIENT_ID)
+              CLIENT_SECRET: $(CLIENT_SECRET)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+              TENANT_ID: $(TENANT_ID)
+
+  - stage: Production
+
+    variables:
+      - group: PACKER_PROD
+
+    jobs:
+      - job: Packer
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - template: ci-main.yml
+            parameters:
+              WORK_PATH: $(WORK_PATH)
+              PackerVarFile: "prod.pkrvars.hcl"
+              AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
+              TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
+              imageVersion: $(FiscalFlowClientVersion)
+              CLIENT_ID: $(CLIENT_ID)
+              CLIENT_SECRET: $(CLIENT_SECRET)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+              TENANT_ID: $(TENANT_ID)

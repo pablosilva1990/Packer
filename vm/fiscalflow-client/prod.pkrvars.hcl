@@ -1,0 +1,5 @@
+vm_size = "standard_F2s_v2"
+managed_image_prefix = "mvx_prod_fiscalflow_client"
+managed_image_resource_group_name = "rg-mvx-prod-shared-eastus"
+build_resource_group_name = "rg-mvx-prod-packer-temp"
+fiscal_flow_client_url_deb = "https://share.linx.com.br/download/attachments/383069339/client-2.7.3.0-x64.deb"
