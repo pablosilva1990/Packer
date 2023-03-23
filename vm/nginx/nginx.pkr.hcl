@@ -53,18 +53,18 @@ source "azure-arm" "build" {
   vm_size                           = "${var.vm_size}"
 
   # For Local use
-  # use_azure_cli_auth = true
+  use_azure_cli_auth = true
   
   # AUTH
-  client_id                         = "${var.client_id}"
-  client_secret                     = "${var.client_secret}"
-  subscription_id                   = "${var.subscription_id}"
-  tenant_id                         = "${var.tenant_id}"
+  # client_id                         = "${var.client_id}"
+  # client_secret                     = "${var.client_secret}"
+  # subscription_id                   = "${var.subscription_id}"
+  # tenant_id                         = "${var.tenant_id}"
   
   # Source Image
   image_publisher = "Canonical"
-  image_offer = "UbuntuServer"
-  image_sku = "14.04.4-LTS"
+  image_offer = "0001-com-ubuntu-server-jammy"
+  image_sku = "22_04-lts"
 
   # Destination Image  
   managed_image_name                 = "${var.managed_image_prefix}_${var.image_version}"
@@ -85,8 +85,19 @@ build {
     # Update and install nginx
     provisioner "shell" {
         execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
-        inline          = ["apt-get update", "apt-get upgrade -y", "apt-get -y install nginx", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
+        inline          = ["apt-get update", "apt-get upgrade -y"]
         inline_shebang  = "/bin/sh -x"
+    }
+
+    provisioner "ansible" {
+      ansible_env_vars = [ "ANSIBLE_HOST_KEY_CHECKING=False" ]
+
+      ansible_ssh_extra_args = [                                                    
+        "-oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa"
+      ]
+
+      # playbook_file = "../../../IaC/ANSIBLE/playbooks/provision-windows/04-install-zabbixagent.yaml"      
+      playbook_file = "./playbook.yaml"
     }
 
 }

@@ -1,0 +1,11 @@
+---
+# playbook.yml
+- name: 'Provision Image'
+  hosts: default
+  become: true
+
+  tasks:
+    - name: install Nginx
+      ansible.builtin.package:
+        name: 'nginx'
+        state: present
