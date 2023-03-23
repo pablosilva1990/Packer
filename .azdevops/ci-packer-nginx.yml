@@ -1,0 +1,58 @@
+trigger: none
+name: 3.0.$(Rev:r)
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  WORK_PATH: "vm/nginx"
+  ImageName: "NGINX"
+  Environment: "mvx"
+
+stages:
+
+- stage: Development
+
+  variables: 
+  - group: PACKER_DEV
+
+  jobs:
+  - job: Packer
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: ci-main.yml
+      parameters: 
+        WORK_PATH: $(WORK_PATH)
+        ManagedImagePrefix: "$(Environment)_dev_$(ImageName)"
+        PackerVarFile: "development.pkrvars.hcl"
+        AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
+        TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
+        imageVersion: $(Build.BuildNumber)
+        CLIENT_ID: $(CLIENT_ID)
+        CLIENT_SECRET: $(CLIENT_SECRET)
+        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+        TENANT_ID: $(TENANT_ID)
+
+- stage: Production
+
+  variables: 
+  - group: PACKER_PROD
+  
+  jobs:
+  - job: Packer
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: ci-main.yml
+      parameters:
+        WORK_PATH: $(WORK_PATH)
+        ManagedImagePrefix: "$(Environment)_prod_$(ImageName)"
+        PackerVarFile: "prod.pkrvars.hcl"
+        AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
+        TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
+        imageVersion: $(Build.BuildNumber)
+        CLIENT_ID: $(CLIENT_ID)
+        CLIENT_SECRET: $(CLIENT_SECRET)
+        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+        TENANT_ID: $(TENANT_ID)

@@ -1,0 +1,1 @@
+vm_size = "standard_F2s_v2"
