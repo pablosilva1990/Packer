@@ -15,7 +15,8 @@ $siteList = @(
   [pscustomobject]@{Name = 'linx02.microvix.com.br' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx02.microvix.com.br' }
   [pscustomobject]@{Name = 'linx03.microvix.com.br' ; SitePath = 'C:\Linx\ERP_PROD' ; Bindings = 'http/:80:linx03.microvix.com.br' }
   [pscustomobject]@{Name = 'linx-rc.microvix.com.br'   ; SitePath = 'C:\Linx\ERP_RC'   ; Bindings = 'http/:80:linx-rc.microvix.com.br' }
-) 
+)
+
 # Configure Site ERP SLOT 
 Foreach ($item in $siteList) {
   $site = ($item).Name
@@ -39,8 +40,6 @@ Foreach ($item in $siteList) {
   & $AppCmd set AppPool $Site /processModel.startupTimeLimit:'00:00:30' /commit:apphost
   & $AppCmd set AppPool $Site /processModel.LoadUserProfile:'true' /commit:apphost
   & $AppCmd set AppPool $Site /startmode:'OnDemand' /commit:apphost
-
-
 
   # Recycling Config
   & $AppCmd set AppPool $Site /-recycling.periodicRestart.time
