@@ -24,7 +24,7 @@ stages:
   - group: PACKER_DEV
 
   jobs:
-  - job: Create Image for Development
+  - job: Packer
     steps:
     - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
       
@@ -46,7 +46,7 @@ stages:
   - group: PACKER_PROD
   
   jobs:
-  - job: Create Image for Production
+  - job: Packer
     steps:
     - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
       
