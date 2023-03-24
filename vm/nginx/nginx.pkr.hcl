@@ -53,13 +53,13 @@ source "azure-arm" "build" {
   vm_size                           = "${var.vm_size}"
 
   # For Local use
-  use_azure_cli_auth = true
+  # use_azure_cli_auth = true
   
   # AUTH
-  # client_id                         = "${var.client_id}"
-  # client_secret                     = "${var.client_secret}"
-  # subscription_id                   = "${var.subscription_id}"
-  # tenant_id                         = "${var.tenant_id}"
+  client_id                         = "${var.client_id}"
+  client_secret                     = "${var.client_secret}"
+  subscription_id                   = "${var.subscription_id}"
+  tenant_id                         = "${var.tenant_id}"
   
   # Source Image
   image_publisher = "Canonical"
