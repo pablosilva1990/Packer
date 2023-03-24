@@ -1,11 +1,19 @@
----
-# playbook.yml
-- name: 'Provision Image'
+#####################################################################################
+- name: Setup all Nginx Image
   hosts: default
-  become: true
 
   tasks:
-    - name: install Nginx
-      ansible.builtin.package:
-        name: 'nginx'
+    - name: install pip3
+      apt: 
+        name: python3-pip
         state: present
+        force: true
+
+- name: Install Zabbix Agent
+  ansible.builtin.import_playbook: ./01-install-zabbixagent.yaml
+
+- name: Setup Nginx
+  ansible.builtin.import_playbook: ./02-nginx-setup.yaml
+
+# - name: Install Crowdstrike
+#   ansible.builtin.import_playbook: ./03-crowdstrike-setup.yaml

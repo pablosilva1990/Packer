@@ -1,0 +1,110 @@
+- name: Setup and Update Config on NGINX
+  hosts: default
+  become: True
+  tags: nginx
+
+  tasks:
+    - name: Install Nginx
+      apt: 
+        name: nginx 
+        state: present
+
+    - name: Create directories for ssl certificates
+      file: 
+        path: /etc/ssl/certs/mvx/
+        owner: root
+        group: root
+        state: directory
+        mode: '0600'
+    
+    # - name: copy TLS certificate
+    #   copy:
+    #     src: ../files/microvix-chained.crt
+    #     dest: /etc/ssl/certs/mvx/microvix-chained.crt
+
+    # - name: copy TLS key
+    #   copy: 
+    #     src: ../files/microvix.key
+    #     dest: /etc/ssl/certs/mvx/microvix.key
+    #     owner: root 
+    #     mode: '0600'
+
+    # - name: copy nginx config file
+    #   template: 
+    #     src: ../templates/nginx.conf.j2 
+    #     dest: /etc/nginx/nginx.conf
+
+    # - name: copy default site config file
+    #   template: 
+    #     src: ../templates/sites/site-default.conf.j2
+    #     dest: /etc/nginx/sites-available/default.conf
+
+    # - name: Copy Site WEBAPI - Microvix
+    #   template: 
+    #     src: ../templates/sites/webapi.microvix.com.br.conf.j2
+    #     dest: /etc/nginx/sites-available/webapi.microvix.com.br.conf
+
+    # - name: enable configuration
+    #   file: 
+    #     src: /etc/nginx/sites-available/webapi.microvix.com.br.conf
+    #     dest: /etc/nginx/sites-enabled/webapi.microvix.com.br.conf 
+    #     state: link
+
+    # - name: copy logformat config file
+    #   copy:
+    #     src: ../templates/conf.d/logformat.conf
+    #     dest: /etc/nginx/conf.d/logformat.conf
+
+    # - name: copy upstream config file
+    #   copy:
+    #     src: ../templates/conf.d/upstream.conf
+    #     dest: /etc/nginx/conf.d/upstream.conf
+        
+    # - name: copy useragent rules file
+    #   copy:
+    #     src: ../templates/conf.d/useragent-rules.conf
+    #     dest: /etc/nginx/conf.d/useragent-rules.conf
+
+    # - name: copy limits zone file
+    #   copy:
+    #     src: ../templates/conf.d/limits_zone.conf
+    #     dest: /etc/nginx/conf.d/limits_zone.conf
+
+    - name: "Add Cronjob - Clean logs of Nginx"
+      cron:
+        name: "Clean logs of Nginx"
+        state: present
+        minute: "0"
+        hour: "5"
+        day: "*"
+        month: "*"
+        weekday: "*"
+        job: 'find /var/log/nginx/*.gz -mtime +14 -delete'
+    
+    # - name: Setup file log rotate Nginx
+    #   copy:
+    #     src: ../templates/logrotate.d/nginx-json.j2
+    #     dest: /etc/logrotate.d/nginx-json
+
+    - name: "Add Cronjob - Log Rotate Json"
+      cron:
+        name: "Log Rotate - Logs Json"
+        state: present
+        minute: "0"
+        hour: "*/2"
+        day: "*"
+        month: "*"
+        weekday: "*"
+        job: 'logrotate -f /etc/logrotate.d/nginx-json'
+
+    - name: Start Nginx
+      service:
+          name: nginx
+          state: started
+
+    - name: nginx -t && nginx -s reload
+      shell: nginx -t && nginx -s reload
+      register: nginx_test_result
+
+    - debug:
+        var: nginx_test_result.stdout_lines

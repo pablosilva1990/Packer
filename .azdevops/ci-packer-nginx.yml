@@ -1,6 +1,13 @@
 trigger: none
 name: 3.0.$(Rev:r)
 
+resources: # Download Repo of Devops-Microvix for use template Nginx Config
+  repositories:
+  - repository: EnvBuilder
+    type: git
+    name: DevOps/EnvBuilder
+    ref: main
+
 pool:
   vmImage: ubuntu-latest
 
@@ -17,12 +24,11 @@ stages:
   - group: PACKER_DEV
 
   jobs:
-  - job: Packer
-    pool:
-      vmImage: 'ubuntu-latest'
+  - job: Create Image for Development
     steps:
-    - template: ci-main.yml
-      parameters: 
+    - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
+      
+      parameters:
         WORK_PATH: $(WORK_PATH)
         ManagedImagePrefix: "$(Environment)_dev_$(ImageName)"
         PackerVarFile: "development.pkrvars.hcl"
@@ -40,11 +46,10 @@ stages:
   - group: PACKER_PROD
   
   jobs:
-  - job: Packer
-    pool:
-      vmImage: 'ubuntu-latest'
+  - job: Create Image for Production
     steps:
-    - template: ci-main.yml
+    - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
+      
       parameters:
         WORK_PATH: $(WORK_PATH)
         ManagedImagePrefix: "$(Environment)_prod_$(ImageName)"

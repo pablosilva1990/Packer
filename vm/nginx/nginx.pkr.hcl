@@ -63,8 +63,8 @@ source "azure-arm" "build" {
   
   # Source Image
   image_publisher = "Canonical"
-  image_offer = "0001-com-ubuntu-server-jammy"
-  image_sku = "22_04-lts"
+  image_offer = "0001-com-ubuntu-server-focal"
+  image_sku = "20_04-lts-gen2"
 
   # Destination Image  
   managed_image_name                 = "${var.managed_image_prefix}_${var.image_version}"
@@ -82,11 +82,26 @@ source "azure-arm" "build" {
 build {
     sources = ["source.azure-arm.build"]
 
-    # Update and install nginx
+    provisioner "file" {
+      source = "./falcon-sensor.deb"
+      destination = "/tmp/falcon-sensor.deb"
+    }
+
+    # Update and upgrade system
     provisioner "shell" {
         execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
-        inline          = ["apt-get update", "apt-get upgrade -y"]
-        inline_shebang  = "/bin/sh -x"
+        inline          = [
+          "cloud-init status --wait",
+          "apt-get update",
+          "apt-get upgrade -y",
+          "apt install python3-netaddr pip python3-pip -y",
+          "apt install libnl-genl-3-200 libnl-3-200 openssl -y",
+          "dpkg -i /tmp/falcon-sensor.deb",
+          "apt install -f -y",
+          "/opt/CrowdStrike/falconctl -f -s --cid=BB3EF18B04624B099032B84EF9F1EA96-9F",
+          "systemctl restart falcon-sensor; systemctl status falcon-sensor"
+        ]
+        max_retries = 3
     }
 
     provisioner "ansible" {
@@ -96,8 +111,7 @@ build {
         "-oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa"
       ]
 
-      # playbook_file = "../../../IaC/ANSIBLE/playbooks/provision-windows/04-install-zabbixagent.yaml"      
-      playbook_file = "./playbook.yaml"
+      playbook_file = "./ansible/00-main.yaml"
     }
 
 }
