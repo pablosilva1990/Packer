@@ -19,4 +19,4 @@
 #   ansible.builtin.import_playbook: ./03-crowdstrike-setup.yaml
 
 - name: Debug Ping
-  ansible.builtin.import_playbook: ../../../../EnvBuilder/playbooks/\[debug\]-ping-test.yml' on the Ansible Controller.
+  ansible.builtin.import_playbook: ../../../../EnvBuilder/playbooks/\[debug\]-ping-test.yml
