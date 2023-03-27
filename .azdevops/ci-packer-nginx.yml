@@ -26,9 +26,10 @@ stages:
   - job: Packer
     steps:
       - bash: |
-          echo Path to repository: $(BUILD_SOURCESDIRECTORY)
-          echo Path to repo1: $(resources.packer.checkout)
-          echo Path to repo2: $(resources.EnvBuilder.checkout)
+          ls -la
+          echo Path to repository: "$BUILD_SOURCESDIRECTORY"
+          echo Path to repo1: $"resources.Packer.checkout"
+          echo Path to repo2: $"resources.EnvBuilder.checkout"
 
 #       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
 #         parameters:
