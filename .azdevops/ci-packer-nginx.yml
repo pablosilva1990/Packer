@@ -28,8 +28,7 @@ stages:
       - bash: |
           ls -la
           echo Path to repository: "$BUILD_SOURCESDIRECTORY"
-          echo Path to repo1: $"resources.Packer.checkout"
-          echo Path to repo2: $"resources.EnvBuilder.checkout"
+          ls -la "$BUILD_SOURCESDIRECTORY"
 
 #       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
 #         parameters:
