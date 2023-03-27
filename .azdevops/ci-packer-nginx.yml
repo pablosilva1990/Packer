@@ -26,10 +26,11 @@ stages:
   - job: Packer
     steps:
       - bash: |
-          ls -la
-          pwd
           echo Path to repository: $(System.DefaultWorkingDirectory)
-          ls -la $(System.DefaultWorkingDirectory)
+          ls -la ../
+          ls -la ../../
+          ls -la ../../../
+          
 
 #       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
 #         parameters:
