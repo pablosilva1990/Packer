@@ -25,11 +25,13 @@ stages:
   jobs:
   - job: Packer
     steps:
+      - checkout: self
       - checkout: EnvBuilder
-        displayName: Checkout Git Repository
+        displayName: Checkout Git Repositories
 
       - bash: |
-          ls -la $(System.DefaultWorkingDirectory)  
+          ls -la $(System.DefaultWorkingDirectory)\s\Packer\
+          ls -la $(System.DefaultWorkingDirectory)\s\EnvBuilder\          
 
 #       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
 #         parameters:
