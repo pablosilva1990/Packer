@@ -1,4 +1,4 @@
-name: $(System.DefinitionName) - 3.0.$(Rev:r)
+name: Create Image for Nginx with Packer - 3.0.$(Rev:r)
 trigger: none
 
 resources: # Download Repo of Devops-Microvix for use template Nginx Config
@@ -28,8 +28,8 @@ stages:
       - bash: |
           ls -la
           pwd
-          echo Path to repository: "$System.DefaultWorkingDirectory"
-          ls -la "$System.DefaultWorkingDirectory"
+          echo Path to repository: $(System.DefaultWorkingDirectory)
+          ls -la $(System.DefaultWorkingDirectory)
 
 #       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
 #         parameters:
