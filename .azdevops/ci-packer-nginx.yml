@@ -1,5 +1,5 @@
+name: System.DefinitionName - 3.0.$(Rev:r)
 trigger: none
-name: 3.0.$(Rev:r)
 
 resources: # Download Repo of Devops-Microvix for use template Nginx Config
   repositories:
@@ -19,45 +19,47 @@ variables:
 stages:
 
 - stage: Development
-
   variables: 
-  - group: PACKER_DEV
+    - group: PACKER_DEV
 
   jobs:
   - job: Packer
     steps:
-    - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
-      
-      parameters:
-        WORK_PATH: $(WORK_PATH)
-        ManagedImagePrefix: "$(Environment)_dev_$(ImageName)"
-        PackerVarFile: "development.pkrvars.hcl"
-        AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
-        TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
-        imageVersion: $(Build.BuildNumber)
-        CLIENT_ID: $(CLIENT_ID)
-        CLIENT_SECRET: $(CLIENT_SECRET)
-        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-        TENANT_ID: $(TENANT_ID)
+      - bash: |
+          echo Path to repository: $(BUILD_SOURCESDIRECTORY)
+          echo Path to repo1: $(resources.packer.checkout)
+          echo Path to repo2: $(resources.EnvBuilder.checkout)
 
-- stage: Production
+#       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
+#         parameters:
+#           WORK_PATH: $(WORK_PATH)
+#           ManagedImagePrefix: "$(Environment)_dev_$(ImageName)"
+#           PackerVarFile: "development.pkrvars.hcl"
+#           AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
+#           TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
+#           imageVersion: $(Build.BuildNumber)
+#           CLIENT_ID: $(CLIENT_ID)
+#           CLIENT_SECRET: $(CLIENT_SECRET)
+#           SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+#           TENANT_ID: $(TENANT_ID)
 
-  variables: 
-  - group: PACKER_PROD
+# - stage: Production
+#   variables: 
+#     - group: PACKER_PROD
   
-  jobs:
-  - job: Packer
-    steps:
-    - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
+#   jobs:
+#   - job: Packer
+#     steps:
+#     - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
       
-      parameters:
-        WORK_PATH: $(WORK_PATH)
-        ManagedImagePrefix: "$(Environment)_prod_$(ImageName)"
-        PackerVarFile: "prod.pkrvars.hcl"
-        AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
-        TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
-        imageVersion: $(Build.BuildNumber)
-        CLIENT_ID: $(CLIENT_ID)
-        CLIENT_SECRET: $(CLIENT_SECRET)
-        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-        TENANT_ID: $(TENANT_ID)
+#       parameters:
+#         WORK_PATH: $(WORK_PATH)
+#         ManagedImagePrefix: "$(Environment)_prod_$(ImageName)"
+#         PackerVarFile: "prod.pkrvars.hcl"
+#         AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
+#         TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
+#         imageVersion: $(Build.BuildNumber)
+#         CLIENT_ID: $(CLIENT_ID)
+#         CLIENT_SECRET: $(CLIENT_SECRET)
+#         SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+#         TENANT_ID: $(TENANT_ID)
