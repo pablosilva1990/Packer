@@ -1,4 +1,4 @@
-name: System.DefinitionName - 3.0.$(Rev:r)
+name: $System.DefinitionName - 3.0.$(Rev:r)
 trigger: none
 
 resources: # Download Repo of Devops-Microvix for use template Nginx Config
