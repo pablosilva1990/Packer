@@ -27,9 +27,8 @@ stages:
     steps:
       - bash: |
           echo Path to repository: $(System.DefaultWorkingDirectory)
-          ls -la ../
-          ls -la ../../
-          ls -la ../../../
+          ls -la ../a/
+          ls -la ../b/
           
 
 #       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
