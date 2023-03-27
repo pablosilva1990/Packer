@@ -1,5 +1,9 @@
 name: Create Image for Nginx with Packer - 3.0.$(Rev:r)
+
 trigger: none
+
+pool:
+  vmImage: ubuntu-latest
 
 resources: # Download Repo of Devops-Microvix for use template Nginx Config
   repositories:
@@ -8,16 +12,12 @@ resources: # Download Repo of Devops-Microvix for use template Nginx Config
     name: DevOps/EnvBuilder    
     ref: main
 
-pool:
-  vmImage: ubuntu-latest
-
 variables:
   WORK_PATH: "vm/nginx"
   ImageName: "NGINX"
   Environment: "mvx"
 
 stages:
-
 - stage: Development
   variables: 
     - group: PACKER_DEV
@@ -29,23 +29,18 @@ stages:
       - checkout: EnvBuilder
         displayName: Checkout Git Repositories
 
-      - bash: |
-          ls -la $(System.DefaultWorkingDirectory)
-          ls -la $(System.DefaultWorkingDirectory)/Packer/
-          ls -la $(System.DefaultWorkingDirectory)/EnvBuilder/
-
-#       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
-#         parameters:
-#           WORK_PATH: $(WORK_PATH)
-#           ManagedImagePrefix: "$(Environment)_dev_$(ImageName)"
-#           PackerVarFile: "development.pkrvars.hcl"
-#           AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
-#           TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
-#           imageVersion: $(Build.BuildNumber)
-#           CLIENT_ID: $(CLIENT_ID)
-#           CLIENT_SECRET: $(CLIENT_SECRET)
-#           SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-#           TENANT_ID: $(TENANT_ID)
+      - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
+        parameters:
+          WORK_PATH: $(WORK_PATH)
+          ManagedImagePrefix: "$(Environment)_dev_$(ImageName)"
+          PackerVarFile: "development.pkrvars.hcl"
+          AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
+          TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
+          imageVersion: $(Build.BuildNumber)
+          CLIENT_ID: $(CLIENT_ID)
+          CLIENT_SECRET: $(CLIENT_SECRET)
+          SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+          TENANT_ID: $(TENANT_ID)
 
 # - stage: Production
 #   variables: 

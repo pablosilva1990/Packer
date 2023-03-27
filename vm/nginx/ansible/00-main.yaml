@@ -17,3 +17,6 @@
 
 # - name: Install Crowdstrike
 #   ansible.builtin.import_playbook: ./03-crowdstrike-setup.yaml
+
+- name: Debug Ping
+  ansible.builtin.import_playbook: $(System.DefaultWorkingDirectory)/EnvBuilder/playbooks/\[debug\]-ping-test.yml
