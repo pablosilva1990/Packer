@@ -13,7 +13,7 @@ resources: # Download Repo of Devops-Microvix for use template Nginx Config
     ref: main
 
 variables:
-  WORK_PATH: "vm/nginx"
+  WORK_PATH: "Packer/vm/nginx"
   ImageName: "NGINX"
   Environment: "mvx"
 
