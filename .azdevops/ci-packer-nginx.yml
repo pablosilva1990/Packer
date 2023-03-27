@@ -30,8 +30,9 @@ stages:
         displayName: Checkout Git Repositories
 
       - bash: |
-          ls -la $(System.DefaultWorkingDirectory)/s/Packer/
-          ls -la $(System.DefaultWorkingDirectory)/s/EnvBuilder/
+          ls -la $(System.DefaultWorkingDirectory)
+          ls -la $(System.DefaultWorkingDirectory)/Packer/
+          ls -la $(System.DefaultWorkingDirectory)/EnvBuilder/
 
 #       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
 #         parameters:
