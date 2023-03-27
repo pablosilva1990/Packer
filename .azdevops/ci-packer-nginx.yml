@@ -27,8 +27,9 @@ stages:
     steps:
       - bash: |
           ls -la
-          echo Path to repository: "$BUILD_SOURCESDIRECTORY"
-          ls -la "$BUILD_SOURCESDIRECTORY"
+          pwd
+          echo Path to repository: "$System.DefaultWorkingDirectory"
+          ls -la "$System.DefaultWorkingDirectory"
 
 #       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
 #         parameters:
