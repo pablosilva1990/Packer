@@ -25,6 +25,7 @@ stages:
           - template: ci-main.yml
             parameters:
               WORK_PATH: $(WORK_PATH)
+              ManagedImagePrefix: "mvx_dev_fiscalflow"
               PackerVarFile: "development.pkrvars.hcl"
               AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
               TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
@@ -47,6 +48,7 @@ stages:
           - template: ci-main.yml
             parameters:
               WORK_PATH: $(WORK_PATH)
+              ManagedImagePrefix: "mvx_prod_fiscalflow"
               PackerVarFile: "prod.pkrvars.hcl"
               AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
               TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
