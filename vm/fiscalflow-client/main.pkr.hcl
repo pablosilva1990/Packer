@@ -62,9 +62,9 @@ source "azure-arm" "build" {
   
   # Source Image
   image_publisher = "Canonical"
-  image_offer = "0001-com-ubuntu-server-jammy"
-  image_sku = "22_04-lts-gen2"
-
+  image_offer = "0001-com-ubuntu-server-focal"
+  image_sku = "20_04-lts-gen2"
+  
   # Destination Image  
   managed_image_name                 = "${var.managed_image_prefix}_${var.image_version}"
   managed_image_resource_group_name  = "${var.managed_image_resource_group_name}"
@@ -104,7 +104,8 @@ build {
         "apt install -f -y libgdiplus",
         "curl https://share.linx.com.br/download/attachments/383069339/client-2.7.3.0-x64.deb -o fiscalflowclient.deb",
         "dpkg -i fiscalflowclient.deb; apt install -f --yes",
-        "apt install -f --yes"
+        "apt install -f --yes",
+        "journalctl -xeu fiscalflowclient.service"
     ]       
 
     }
