@@ -1,5 +1,6 @@
 - name: Zabbix Agent Setup
   hosts: default
+  become: true
   collections:
     - community.zabbix
 
