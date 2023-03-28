@@ -12,5 +12,5 @@
 - name: Install Zabbix Agent
   ansible.builtin.import_playbook: ./01-install-zabbixagent.yaml
 
-- name: Install Crowdstrike on Image
-  ansible.builtin.import_playbook: ./02-crowdstrike-setup.yaml
+# - name: Install Crowdstrike on Image
+#   ansible.builtin.import_playbook: ./02-crowdstrike-setup.yaml
