@@ -10,7 +10,7 @@ parameters:
 
   - name: ManagedImagePrefix
     type: string
-    default: mvx_prod_erp_$(version)
+    # default: mvx_prod_erp_$(version)
     displayName: Packer - Managed Image Prefix 
 
 #  - name: AzureGalleryName
