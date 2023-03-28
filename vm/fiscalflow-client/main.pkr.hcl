@@ -112,6 +112,7 @@ build {
         "apt install -f --yes",
         "journalctl -xeu fiscalflowclient.service"
     ]   
+    }
 
     provisioner "ansible" {
       ansible_env_vars = [ "ANSIBLE_HOST_KEY_CHECKING=False" ]
@@ -121,8 +122,5 @@ build {
       ]
 
       playbook_file = "./ansible/00-main.yaml"
-    }    
-
     }
-
 }
