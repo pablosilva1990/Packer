@@ -1,0 +1,37 @@
+- name: Crowdstrike Setup
+  hosts: default
+  collections:
+    - crowdstrike.falcon
+
+  roles:
+    - role: crowdstrike.falcon.falcon_install
+      vars:
+        falcon_install_method: file
+        falcon_localfile_path: "/tmp/falcon-sensor.deb"
+        falcon_localfile_cleanup: yes
+
+  tasks:
+    - name: Definir variável de ambiente falconctl
+      ansible.builtin.set_fact:
+        falconctl: "/opt/CrowdStrike/falconctl"
+
+    - name: Set CrowdStrike Falcon CID
+      crowdstrike.falcon.falconctl:
+        state: present
+        cid: "BB3EF18B04624B099032B84EF9F1EA96-9F"
+      environment:
+        falconctl: "{{ falconctl }}"
+      ignore_errors: true
+
+    - name: Get all Falcon sensor options
+      crowdstrike.falcon.falconctl_info:
+      environment:
+        falconctl: "{{ falconctl }}"
+      ignore_errors: true
+
+    - name: service status
+      ansible.builtin.service:
+        name: falcon-sensor
+        state: started
+        enabled: true
+      ignore_errors: true

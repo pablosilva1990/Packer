@@ -1,0 +1,38 @@
+- name: Zabbix Agent Setup
+  hosts: default
+  collections:
+    - community.zabbix
+
+  roles:
+    - role: zabbix_agent
+      ### Config General
+      # zabbix_agent_allowroot: true
+      # zabbix_agent_allowroot: 1
+      zabbix_agent_become_on_localhost: false
+      zabbix_install_pip_packages: false
+      
+      ### Config Agent
+      zabbix_agent_server: 10.17.252.4
+      # zabbix_agent_version: 6.0
+      zabbix_agent_package_state: latest
+      zabbix_agent_dont_detect_ip: true
+      zabbix_agent_enableremotecommands: 1
+      zabbix_agent_serveractive: 10.17.252.4
+      zabbix_agent_hostname: "{{ ansible_netbios_name }}"
+
+      ### Config Zabbix Agent v2
+      zabbix_agent(2)_server: 10.17.252.4      
+      zabbix_agent(2)_serveractive: 10.17.252.4
+
+      ### Connection Zabbix API
+      zabbix_api_use: false
+
+      ### Configuração de TLS
+      # zabbix_agent_tlsaccept: psk
+      # zabbix_agent_tlsconnect: psk
+      #  zabbix_agent_tlspskidentity: "myhost PSK"
+      # zabbix_agent_tlspsk_secret: b7e3d380b9d400676d47198ecf3592ccd4795a59668aa2ade29f0003abbbd40d
+      # zabbix_agent_tlspskfile: /etc/zabbix/zabbix_agent_pskfile.psk
+      
+      zabbix_win_firewall_management: false
+      zabbix_win_install_dir: C:\Program Files\Zabbix Agent

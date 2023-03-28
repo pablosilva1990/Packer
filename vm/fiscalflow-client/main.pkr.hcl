@@ -64,7 +64,7 @@ source "azure-arm" "build" {
   image_publisher = "Canonical"
   image_offer = "0001-com-ubuntu-server-focal"
   image_sku = "20_04-lts-gen2"
-  
+
   # Destination Image  
   managed_image_name                 = "${var.managed_image_prefix}_${var.image_version}"
   managed_image_resource_group_name  = "${var.managed_image_resource_group_name}"
@@ -80,6 +80,11 @@ source "azure-arm" "build" {
 # Builder: https://www.packer.io/docs/builders/azure/arm
 build {
     sources = ["source.azure-arm.build"]
+
+    provisioner "file" {
+      source = "./falcon-sensor.deb"
+      destination = "/tmp/falcon-sensor.deb"
+    }
 
     # Update and upgrade
     provisioner "shell" {
@@ -106,7 +111,17 @@ build {
         "dpkg -i fiscalflowclient.deb; apt install -f --yes",
         "apt install -f --yes",
         "journalctl -xeu fiscalflowclient.service"
-    ]       
+    ]   
+
+    provisioner "ansible" {
+      ansible_env_vars = [ "ANSIBLE_HOST_KEY_CHECKING=False" ]
+
+      ansible_ssh_extra_args = [                                                    
+        "-oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa"
+      ]
+
+      playbook_file = "./ansible/00-main.yaml"
+    }    
 
     }
 
