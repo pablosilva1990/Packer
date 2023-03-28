@@ -92,7 +92,9 @@ build {
         inline          = [
           "cloud-init status --wait",
           "apt-get update",
-          "apt-get upgrade -y"
+          "apt-get upgrade -y",
+          "apt install ansible -y",
+          "ansible-galaxy collection install crowdstrike.falcon --upgrade"
         ]
         inline_shebang  = "/bin/sh -x"
     }
