@@ -84,13 +84,18 @@ build {
     # Update and upgrade
     provisioner "shell" {
         execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
-        inline          = ["apt-get update", "apt-get upgrade -y"]
+        inline          = [
+          "cloud-init status --wait",
+          "apt-get update",
+          "apt-get upgrade -y"
+        ]
         inline_shebang  = "/bin/sh -x"
     }
 
     provisioner "shell" {
         execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
         inline = [
+        "cloud-init status --wait",
         "export DEBIAN_FRONTEND=noninteractive",
         "export EULA_ACCEPTED=true",
         "export NOLICENSE=true",
@@ -98,8 +103,8 @@ build {
         "apt install ttf-mscorefonts-installer -f --yes",
         "apt install -f -y libgdiplus",
         "curl https://share.linx.com.br/download/attachments/383069339/client-2.7.3.0-x64.deb -o fiscalflowclient.deb",
-        "dpkg -i fiscalflowclient.deb; apt install -f --yes"
-        # "apt install -f --yes"
+        "dpkg -i fiscalflowclient.deb; apt install -f --yes",
+        "apt install -f --yes"
     ]       
 
     }
