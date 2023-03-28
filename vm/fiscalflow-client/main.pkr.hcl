@@ -82,11 +82,11 @@ build {
     sources = ["source.azure-arm.build"]
 
     # Update and upgrade
-    # provisioner "shell" {
-    #     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
-    #     inline          = ["apt-get update", "apt-get upgrade -y"]
-    #     inline_shebang  = "/bin/sh -x"
-    # }
+    provisioner "shell" {
+        execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+        inline          = ["apt-get update", "apt-get upgrade -y"]
+        inline_shebang  = "/bin/sh -x"
+    }
 
     provisioner "shell" {
         execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
