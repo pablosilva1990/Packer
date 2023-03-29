@@ -64,7 +64,7 @@ source "azure-arm" "build" {
   # Source Image
   image_publisher = "Canonical"
   image_offer = "0001-com-ubuntu-server-jammy"
-  image_sku = "22_04-lts-gen2"
+  image_sku = "minimal-22_04-lts"
 
   # Destination Image  
   managed_image_name                 = "${var.managed_image_prefix}_${var.image_version}"
