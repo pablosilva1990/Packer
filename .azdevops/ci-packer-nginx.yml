@@ -29,6 +29,14 @@ stages:
       - checkout: EnvBuilder
         displayName: Checkout Git Repositories
 
+      - task: Bash@3
+        inputs:
+          workingDirectory: $System.DefaultWorkingDirectory
+          targetType: "inline"
+          script: |
+            ls -lR
+        displayName: List Files Sytem Default workingDirectory
+
       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
         parameters:
           WORK_PATH: $(WORK_PATH)
@@ -37,6 +45,8 @@ stages:
           AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
           TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
           # imageVersion: $(Build.BuildNumber)
+          imageVersion: "1.0.0"
+          PACKER_RELEASE: "1.8.6"
           CLIENT_ID: $(CLIENT_ID)
           CLIENT_SECRET: $(CLIENT_SECRET)
           SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)

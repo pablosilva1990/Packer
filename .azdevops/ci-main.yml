@@ -5,7 +5,6 @@ parameters:
     
   - name: imageVersion
     type: string
-    default: "1.0.0"
     displayName: Packer Managed Image Version
 
   - name: ManagedImagePrefix
