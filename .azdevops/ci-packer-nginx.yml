@@ -46,7 +46,6 @@ stages:
           TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
           # imageVersion: $(Build.BuildNumber)
           imageVersion: "1.0.0"
-          PACKER_RELEASE: "1.8.6"
           CLIENT_ID: $(CLIENT_ID)
           CLIENT_SECRET: $(CLIENT_SECRET)
           SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
