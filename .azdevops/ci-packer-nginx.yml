@@ -31,7 +31,7 @@ stages:
 
       - task: Bash@3
         inputs:
-          workingDirectory: $System.DefaultWorkingDirectory
+          workingDirectory: $(System.DefaultWorkingDirectory)
           targetType: "inline"
           script: |
             ls -lR
