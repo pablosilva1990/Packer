@@ -92,14 +92,14 @@ build {
         execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
         inline          = [
           "cloud-init status --wait",
-          # "apt-get update",
-          # "apt-get upgrade -y",
-          # "apt install python3-netaddr pip python3-pip -y",
-          # "apt install libnl-genl-3-200 libnl-3-200 openssl -y",
-          # "dpkg -i /tmp/falcon-sensor.deb",
-          # "apt install -f -y",
-          # "/opt/CrowdStrike/falconctl -f -s --cid=BB3EF18B04624B099032B84EF9F1EA96-9F",
-          # "systemctl restart falcon-sensor; systemctl status falcon-sensor"
+          "apt-get update",
+          "apt-get upgrade -y",
+          "apt install python3-netaddr pip python3-pip -y",
+          "apt install libnl-genl-3-200 libnl-3-200 openssl -y",
+          "dpkg -i /tmp/falcon-sensor.deb",
+          "apt install -f -y",
+          "/opt/CrowdStrike/falconctl -f -s --cid=BB3EF18B04624B099032B84EF9F1EA96-9F",
+          "systemctl restart falcon-sensor; systemctl status falcon-sensor"
         ]
         max_retries = 3
     }
