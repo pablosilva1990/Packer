@@ -17,58 +17,58 @@
         state: directory
         mode: '0600'
     
-    # - name: copy TLS certificate
-    #   copy:
-    #     src: ../files/microvix-chained.crt
-    #     dest: /etc/ssl/certs/mvx/microvix-chained.crt
+    - name: copy TLS certificate
+      copy:
+        src: ../../../../EnvBuilder/files/microvix-chained.crt
+        dest: /etc/ssl/certs/mvx/microvix-chained.crt
 
-    # - name: copy TLS key
-    #   copy: 
-    #     src: ../files/microvix.key
-    #     dest: /etc/ssl/certs/mvx/microvix.key
-    #     owner: root 
-    #     mode: '0600'
+    - name: copy TLS key
+      copy: 
+        src: ../../../../EnvBuilder/files/microvix.key
+        dest: /etc/ssl/certs/mvx/microvix.key
+        owner: root 
+        mode: '0600'
 
-    # - name: copy nginx config file
-    #   template: 
-    #     src: ../templates/nginx.conf.j2 
-    #     dest: /etc/nginx/nginx.conf
+    - name: copy nginx config file
+      template: 
+        src: ../../../../EnvBuilder/templates/nginx.conf.j2 
+        dest: /etc/nginx/nginx.conf
 
-    # - name: copy default site config file
-    #   template: 
-    #     src: ../templates/sites/site-default.conf.j2
-    #     dest: /etc/nginx/sites-available/default.conf
+    - name: copy default site config file
+      template: 
+        src: ../../../../EnvBuilder/templates/sites/site-default.conf.j2
+        dest: /etc/nginx/sites-available/default.conf
 
-    # - name: Copy Site WEBAPI - Microvix
-    #   template: 
-    #     src: ../templates/sites/webapi.microvix.com.br.conf.j2
-    #     dest: /etc/nginx/sites-available/webapi.microvix.com.br.conf
+    - name: Copy Site WEBAPI - Microvix
+      template: 
+        src: ../../../../EnvBuilder/templates/sites/webapi.microvix.com.br.conf.j2
+        dest: /etc/nginx/sites-available/webapi.microvix.com.br.conf
 
-    # - name: enable configuration
-    #   file: 
-    #     src: /etc/nginx/sites-available/webapi.microvix.com.br.conf
-    #     dest: /etc/nginx/sites-enabled/webapi.microvix.com.br.conf 
-    #     state: link
+    - name: enable configuration
+      file: 
+        src: /etc/nginx/sites-available/webapi.microvix.com.br.conf
+        dest: /etc/nginx/sites-enabled/webapi.microvix.com.br.conf 
+        state: link
 
-    # - name: copy logformat config file
-    #   copy:
-    #     src: ../templates/conf.d/logformat.conf
-    #     dest: /etc/nginx/conf.d/logformat.conf
+    - name: copy logformat config file
+      copy:
+        src: .../../../../EnvBuilder/templates/conf.d/logformat.conf
+        dest: /etc/nginx/conf.d/logformat.conf
 
-    # - name: copy upstream config file
-    #   copy:
-    #     src: ../templates/conf.d/upstream.conf
-    #     dest: /etc/nginx/conf.d/upstream.conf
+    - name: copy upstream config file
+      copy:
+        src: .../../../../EnvBuilder/templates/conf.d/upstream.conf
+        dest: /etc/nginx/conf.d/upstream.conf
         
-    # - name: copy useragent rules file
-    #   copy:
-    #     src: ../templates/conf.d/useragent-rules.conf
-    #     dest: /etc/nginx/conf.d/useragent-rules.conf
+    - name: copy useragent rules file
+      copy:
+        src: .../../../../EnvBuilder/templates/conf.d/useragent-rules.conf
+        dest: /etc/nginx/conf.d/useragent-rules.conf
 
-    # - name: copy limits zone file
-    #   copy:
-    #     src: ../templates/conf.d/limits_zone.conf
-    #     dest: /etc/nginx/conf.d/limits_zone.conf
+    - name: copy limits zone file
+      copy:
+        src: .../../../../EnvBuilder/templates/conf.d/limits_zone.conf
+        dest: /etc/nginx/conf.d/limits_zone.conf
 
     - name: "Add Cronjob - Clean logs of Nginx"
       cron:
@@ -81,10 +81,10 @@
         weekday: "*"
         job: 'find /var/log/nginx/*.gz -mtime +14 -delete'
     
-    # - name: Setup file log rotate Nginx
-    #   copy:
-    #     src: ../templates/logrotate.d/nginx-json.j2
-    #     dest: /etc/logrotate.d/nginx-json
+    - name: Setup file log rotate Nginx
+      copy:
+        src: ../../../../EnvBuilder/templates/logrotate.d/nginx-json.j2
+        dest: /etc/logrotate.d/nginx-json
 
     - name: "Add Cronjob - Log Rotate Json"
       cron:
