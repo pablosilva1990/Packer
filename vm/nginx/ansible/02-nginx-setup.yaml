@@ -52,22 +52,22 @@
 
     - name: copy logformat config file
       copy:
-        src: .../../../../EnvBuilder/templates/conf.d/logformat.conf
+        src: ".../../../../EnvBuilder/templates/conf.d/logformat.conf"
         dest: /etc/nginx/conf.d/logformat.conf
 
     - name: copy upstream config file
       copy:
-        src: .../../../../EnvBuilder/templates/conf.d/upstream.conf
+        src: ".../../../../EnvBuilder/templates/conf.d/upstream.conf"
         dest: /etc/nginx/conf.d/upstream.conf
         
     - name: copy useragent rules file
       copy:
-        src: .../../../../EnvBuilder/templates/conf.d/useragent-rules.conf
+        src: ".../../../../EnvBuilder/templates/conf.d/useragent-rules.conf"
         dest: /etc/nginx/conf.d/useragent-rules.conf
 
     - name: copy limits zone file
       copy:
-        src: .../../../../EnvBuilder/templates/conf.d/limits_zone.conf
+        src: ".../../../../EnvBuilder/templates/conf.d/limits_zone.conf"
         dest: /etc/nginx/conf.d/limits_zone.conf
 
     - name: "Add Cronjob - Clean logs of Nginx"
@@ -83,7 +83,7 @@
     
     - name: Setup file log rotate Nginx
       copy:
-        src: ../../../../EnvBuilder/templates/logrotate.d/nginx-json.j2
+        src: "../../../../EnvBuilder/templates/logrotate.d/nginx-json.j2"
         dest: /etc/logrotate.d/nginx-json
 
     - name: "Add Cronjob - Log Rotate Json"
