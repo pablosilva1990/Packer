@@ -63,6 +63,7 @@ stages:
           AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
           TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
           PACKER_RELEASE: "1.8.6"
+          imageVersion: "1.0.0"
           CLIENT_ID: $(CLIENT_ID)
           CLIENT_SECRET: $(CLIENT_SECRET)
           SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
