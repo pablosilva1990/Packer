@@ -14,6 +14,3 @@
 
 - name: Setup Nginx
   ansible.builtin.import_playbook: ./02-nginx-setup.yaml
-
-- name: Install Crowdstrike
-  ansible.builtin.import_playbook: ./03-crowdstrike-setup.yaml

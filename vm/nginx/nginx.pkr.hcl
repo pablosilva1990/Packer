@@ -110,9 +110,7 @@ build {
       ansible_ssh_extra_args = [                                                    
         "-oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa"
       ]
-
-      galaxy_command = "ansible-galaxy collection install crowdstrike.falcon"
-
+      
       playbook_file = "./ansible/00-main.yaml"
     }
 
