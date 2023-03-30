@@ -2,6 +2,8 @@
   hosts: default
   become: True
   tags: nginx
+  vars:
+    - envbuilder_path: "../../../../../EnvBuilder/"
 
   tasks:
     - name: Install Nginx
@@ -19,31 +21,31 @@
     
     - name: copy TLS certificate
       copy:
-        src: ../../../../EnvBuilder/files/microvix-chained.crt
+        src: "{{ envbuilder_path }}files/microvix-chained.crt"
         dest: /etc/ssl/certs/mvx/microvix-chained.crt
         owner: root 
         mode: '0600'
 
     - name: copy TLS key
       copy: 
-        src: ../../../../EnvBuilder/files/microvix.key
+        src: "{{ envbuilder_path }}files/microvix.key"
         dest: /etc/ssl/certs/mvx/microvix.key
         owner: root 
         mode: '0600'
 
     - name: copy nginx config file
       template: 
-        src: ../../../../EnvBuilder/templates/nginx.conf.j2 
+        src: "{{ envbuilder_path }}templates/nginx.conf.j2"
         dest: /etc/nginx/nginx.conf
 
     - name: copy default site config file
       template: 
-        src: ../../../../EnvBuilder/templates/sites/site-default.conf.j2
+        src: "{{ envbuilder_path }}templates/sites/site-default.conf.j2"
         dest: /etc/nginx/sites-available/default.conf
 
     - name: Copy Site WEBAPI - Microvix
       template: 
-        src: ../../../../EnvBuilder/templates/sites/webapi.microvix.com.br.conf.j2
+        src: "{{ envbuilder_path }}templates/sites/webapi.microvix.com.br.conf.j2"
         dest: /etc/nginx/sites-available/webapi.microvix.com.br.conf
 
     - name: enable configuration
@@ -62,7 +64,7 @@
 
     - name: copy logformat config file
       copy:
-        src: "../../../../EnvBuilder/templates/conf.d/logformat.conf.j2"
+        src: "{{ envbuilder_path }}templates/conf.d/logformat.conf.j2"
         dest: "/etc/nginx/conf.d/logformat.conf"
 
     # A task de upstream deve ser executada na VM criada
@@ -70,17 +72,17 @@
      
     # - name: copy upstream config file
     #   copy:
-    #     src: "../../../../EnvBuilder/templates/conf.d/upstream.conf.j2"
+    #     src: "{{ envbuilder_path }}templates/conf.d/upstream.conf.j2"
     #     dest: /etc/nginx/conf.d/upstream.conf
         
     - name: copy useragent rules file
       copy:
-        src: "../../../../EnvBuilder/templates/conf.d/useragent-rules.conf.j2"
+        src: "{{ envbuilder_path }}templates/conf.d/useragent-rules.conf.j2"
         dest: /etc/nginx/conf.d/useragent-rules.conf
 
     - name: copy limits zone file
       copy:
-        src: "../../../../EnvBuilder/templates/conf.d/limits_zone.conf.j2"
+        src: "{{ envbuilder_path }}templates/conf.d/limits_zone.conf.j2"
         dest: /etc/nginx/conf.d/limits_zone.conf
 
     - name: "Add Cronjob - Clean logs of Nginx"
@@ -96,7 +98,7 @@
     
     - name: Setup file log rotate Nginx
       copy:
-        src: "../../../../EnvBuilder/templates/logrotate.d/nginx-json.j2"
+        src: "{{ envbuilder_path }}templates/logrotate.d/nginx-json.j2"
         dest: /etc/logrotate.d/nginx-json
 
     - name: "Add Cronjob - Log Rotate Json"
