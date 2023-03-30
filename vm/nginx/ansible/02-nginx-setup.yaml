@@ -3,7 +3,7 @@
   become: True
   tags: nginx
   vars:
-    - envbuilder_path: "../../../../../EnvBuilder/"
+    - envbuilder_path: "../../../../EnvBuilder/"
 
   tasks:
     - name: Install Nginx
