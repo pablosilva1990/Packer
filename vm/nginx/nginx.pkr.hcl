@@ -105,7 +105,7 @@ build {
     }
 
     provisioner "ansible" {
-      ansible_env_vars = [ "ANSIBLE_HOST_KEY_CHECKING=False" ]
+      ansible_env_vars = [ "ANSIBLE_HOST_KEY_CHECKING=False", "ANSIBLE_DISPLAY_SKIPPED_HOSTS=False" ]
 
       ansible_ssh_extra_args = [                                                    
         "-oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa"
