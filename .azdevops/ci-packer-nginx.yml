@@ -29,14 +29,6 @@ stages:
       - checkout: EnvBuilder
         displayName: Checkout Git Repositories
 
-      - task: Bash@3
-        inputs:
-          workingDirectory: $(System.DefaultWorkingDirectory)/EnvBuilder/templates/
-          targetType: "inline"
-          script: |
-            ls -lR
-        displayName: List Files Sytem Default workingDirectory
-
       - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
         parameters:
           WORK_PATH: $(WORK_PATH)
@@ -44,30 +36,34 @@ stages:
           PackerVarFile: "development.pkrvars.hcl"
           AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
           TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
-          # imageVersion: $(Build.BuildNumber)
+          PACKER_RELEASE: "1.8.6"
           imageVersion: "1.0.0"
           CLIENT_ID: $(CLIENT_ID)
           CLIENT_SECRET: $(CLIENT_SECRET)
           SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
           TENANT_ID: $(TENANT_ID)
 
-# - stage: Production
-#   variables: 
-#     - group: PACKER_PROD
+- stage: Production
+  variables: 
+    - group: PACKER_PROD
   
-#   jobs:
-#   - job: Packer
-#     steps:
-#     - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
+  jobs:
+  - job: Packer
+    steps:
+      - checkout: self
+      - checkout: EnvBuilder
+        displayName: Checkout Git Repositories
+
+      - template: ci-main.yml # Template utilizado para execução das tarefas da pipeline
       
-#       parameters:
-#         WORK_PATH: $(WORK_PATH)
-#         ManagedImagePrefix: "$(Environment)_prod_$(ImageName)"
-#         PackerVarFile: "prod.pkrvars.hcl"
-#         AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
-#         TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
-#         imageVersion: $(Build.BuildNumber)
-#         CLIENT_ID: $(CLIENT_ID)
-#         CLIENT_SECRET: $(CLIENT_SECRET)
-#         SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-#         TENANT_ID: $(TENANT_ID)
+        parameters:
+          WORK_PATH: $(WORK_PATH)
+          ManagedImagePrefix: "$(Environment)_PROD_$(ImageName)"
+          PackerVarFile: "prod.pkrvars.hcl"
+          AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
+          TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
+          PACKER_RELEASE: "1.8.6"
+          CLIENT_ID: $(CLIENT_ID)
+          CLIENT_SECRET: $(CLIENT_SECRET)
+          SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+          TENANT_ID: $(TENANT_ID)

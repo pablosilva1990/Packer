@@ -65,10 +65,13 @@
         src: "../../../../EnvBuilder/templates/conf.d/logformat.conf.j2"
         dest: "/etc/nginx/conf.d/logformat.conf"
 
-    - name: copy upstream config file
-      copy:
-        src: "../../../../EnvBuilder/templates/conf.d/upstream.conf.j2"
-        dest: /etc/nginx/conf.d/upstream.conf
+    # A task de upstream deve ser executada na VM criada
+    # Motivo: A upstream utiliza resolução de nomes de DNS privados, que só serão resolvidos quando a máquina possuir comunicação com um DNS Server
+     
+    # - name: copy upstream config file
+    #   copy:
+    #     src: "../../../../EnvBuilder/templates/conf.d/upstream.conf.j2"
+    #     dest: /etc/nginx/conf.d/upstream.conf
         
     - name: copy useragent rules file
       copy:
