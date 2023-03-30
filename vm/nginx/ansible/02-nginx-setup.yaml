@@ -21,6 +21,8 @@
       copy:
         src: ../../../../EnvBuilder/files/microvix-chained.crt
         dest: /etc/ssl/certs/mvx/microvix-chained.crt
+        owner: root 
+        mode: '0600'
 
     - name: copy TLS key
       copy: 
@@ -49,6 +51,14 @@
         src: /etc/nginx/sites-available/webapi.microvix.com.br.conf
         dest: /etc/nginx/sites-enabled/webapi.microvix.com.br.conf 
         state: link
+
+    - name: Create directories for conf.d
+      file: 
+        path: /etc/nginx/conf.d/
+        owner: root
+        group: root
+        state: directory
+        mode: '0755'
 
     - name: copy logformat config file
       copy:
