@@ -43,17 +43,6 @@
         src: "{{ envbuilder_path }}templates/sites/site-default.conf.j2"
         dest: /etc/nginx/sites-available/default.conf
 
-    - name: Copy Site WEBAPI - Microvix
-      template: 
-        src: "{{ envbuilder_path }}templates/sites/webapi.microvix.com.br.conf.j2"
-        dest: /etc/nginx/sites-available/webapi.microvix.com.br.conf
-
-    - name: enable configuration
-      file: 
-        src: /etc/nginx/sites-available/webapi.microvix.com.br.conf
-        dest: /etc/nginx/sites-enabled/webapi.microvix.com.br.conf 
-        state: link
-
     - name: Create directories for conf.d
       file: 
         path: /etc/nginx/conf.d/
@@ -67,13 +56,24 @@
         src: "{{ envbuilder_path }}templates/conf.d/logformat.conf.j2"
         dest: "/etc/nginx/conf.d/logformat.conf"
 
-    # A task de upstream deve ser executada na VM criada
+    # As tasks comentadas devem ser executadas após a criação da VM e colocada dentro de um dominio com resolução de nomes.
     # Motivo: A upstream utiliza resolução de nomes de DNS privados, que só serão resolvidos quando a máquina possuir comunicação com um DNS Server
      
     # - name: copy upstream config file
     #   copy:
     #     src: "{{ envbuilder_path }}templates/conf.d/upstream.conf.j2"
     #     dest: /etc/nginx/conf.d/upstream.conf
+
+    # - name: Copy Site WEBAPI - Microvix
+    #   template: 
+    #     src: "{{ envbuilder_path }}templates/sites/webapi.microvix.com.br.conf.j2"
+    #     dest: /etc/nginx/sites-available/webapi.microvix.com.br.conf
+
+    # - name: enable configuration
+    #   file: 
+    #     src: /etc/nginx/sites-available/webapi.microvix.com.br.conf
+    #     dest: /etc/nginx/sites-enabled/webapi.microvix.com.br.conf 
+    #     state: link
         
     - name: copy useragent rules file
       copy:
@@ -85,6 +85,11 @@
         src: "{{ envbuilder_path }}templates/conf.d/limits_zone.conf.j2"
         dest: /etc/nginx/conf.d/limits_zone.conf
 
+    - name: Setup file log rotate Nginx
+      copy:
+        src: "{{ envbuilder_path }}templates/logrotate.d/nginx-json.j2"
+        dest: /etc/logrotate.d/nginx-json
+
     - name: "Add Cronjob - Clean logs of Nginx"
       cron:
         name: "Clean logs of Nginx"
@@ -95,11 +100,6 @@
         month: "*"
         weekday: "*"
         job: 'find /var/log/nginx/*.gz -mtime +14 -delete'
-    
-    - name: Setup file log rotate Nginx
-      copy:
-        src: "{{ envbuilder_path }}templates/logrotate.d/nginx-json.j2"
-        dest: /etc/logrotate.d/nginx-json
 
     - name: "Add Cronjob - Log Rotate Json"
       cron:
