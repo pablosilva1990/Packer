@@ -31,7 +31,7 @@ stages:
 
       - task: Bash@3
         inputs:
-          workingDirectory: $(System.DefaultWorkingDirectory)templates/
+          workingDirectory: $(System.DefaultWorkingDirectory)/EnvBuilder/templates/
           targetType: "inline"
           script: |
             ls -lR
