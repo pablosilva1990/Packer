@@ -58,17 +58,19 @@
         owner: root
         group: root
         state: directory
-        mode: '0755'
+        mode: '0600'
 
     - name: copy logformat config file
       copy:
         src: ".../../../../EnvBuilder/templates/conf.d/logformat.conf"
-        dest: /etc/nginx/conf.d/logformat.conf
+        dest: "/etc/nginx/conf.d/logformat.conf"
+        mode: '644'
 
     - name: copy upstream config file
       copy:
         src: ".../../../../EnvBuilder/templates/conf.d/upstream.conf"
         dest: /etc/nginx/conf.d/upstream.conf
+        mode: '644'
         
     - name: copy useragent rules file
       copy:
