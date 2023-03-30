@@ -60,27 +60,27 @@
         state: directory
         mode: '0600'
 
-    - name: copy logformat config file
-      copy:
-        src: ".../../../../EnvBuilder/templates/conf.d/logformat.conf"
-        dest: "/etc/nginx/conf.d/logformat.conf"
-        mode: '644'
+    # - name: copy logformat config file
+    #   copy:
+    #     src: ".../../../../EnvBuilder/templates/conf.d/logformat.conf"
+    #     dest: "/etc/nginx/conf.d/logformat.conf"
+    #     mode: '644'
 
-    - name: copy upstream config file
-      copy:
-        src: ".../../../../EnvBuilder/templates/conf.d/upstream.conf"
-        dest: /etc/nginx/conf.d/upstream.conf
-        mode: '644'
+    # - name: copy upstream config file
+    #   copy:
+    #     src: ".../../../../EnvBuilder/templates/conf.d/upstream.conf"
+    #     dest: /etc/nginx/conf.d/upstream.conf
+    #     mode: '644'
         
-    - name: copy useragent rules file
-      copy:
-        src: ".../../../../EnvBuilder/templates/conf.d/useragent-rules.conf"
-        dest: /etc/nginx/conf.d/useragent-rules.conf
+    # - name: copy useragent rules file
+    #   copy:
+    #     src: ".../../../../EnvBuilder/templates/conf.d/useragent-rules.conf"
+    #     dest: /etc/nginx/conf.d/useragent-rules.conf
 
-    - name: copy limits zone file
-      copy:
-        src: ".../../../../EnvBuilder/templates/conf.d/limits_zone.conf"
-        dest: /etc/nginx/conf.d/limits_zone.conf
+    # - name: copy limits zone file
+    #   copy:
+    #     src: ".../../../../EnvBuilder/templates/conf.d/limits_zone.conf"
+    #     dest: /etc/nginx/conf.d/limits_zone.conf
 
     - name: "Add Cronjob - Clean logs of Nginx"
       cron:
