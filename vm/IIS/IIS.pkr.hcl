@@ -115,4 +115,20 @@ build {
     max_retries = 2
   }
 
+  provisioner "powershell" {
+    script = "scripts/winrm.ps1"
+  }
+
+  provisioner "powershell" {
+    script = "scripts/crowdstrike.ps1"
+  }
+
+  provisioner "powershell" {
+    script = "scripts/disable-defender.ps1"
+  }
+
+  provisioner "powershell" {
+    script = "scripts/dependencies.ps1"
+  }
+
 }
