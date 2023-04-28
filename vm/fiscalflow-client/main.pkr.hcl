@@ -62,7 +62,7 @@ source "azure-arm" "build" {
   
   # Source Image
   image_publisher = "Canonical"
-  image_offer = "ubuntu-server"
+  image_offer = "UbuntuServer"
   image_sku = "18_04-lts-gen2"
 
   # Destination Image  
