@@ -62,8 +62,8 @@ source "azure-arm" "build" {
   
   # Source Image
   image_publisher = "Canonical"
-  image_offer = "0001-com-ubuntu-server-focal"
-  image_sku = "20_04-lts-gen2"
+  image_offer = "ubuntu-server"
+  image_sku = "18_04-lts-gen2"
 
   # Destination Image  
   managed_image_name                 = "${var.managed_image_prefix}_${var.image_version}"
