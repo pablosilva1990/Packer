@@ -52,6 +52,13 @@ variable "image_sku" {
 }
 
 
+variable "image_offer" {
+  type    = string
+  default = "0001-com-ubuntu-server-focal"
+}
+
+
+
 
 source "azure-arm" "build" {
   build_resource_group_name         = "${var.build_resource_group_name}"
@@ -69,7 +76,7 @@ source "azure-arm" "build" {
   
   # Source Image
   image_publisher = "Canonical"
-  image_offer = "UbuntuServer"
+  image_offer = "${var.image_offer}"
   image_sku = "${var.image_sku}"
 
   # Destination Image  
