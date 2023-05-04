@@ -1,55 +1,57 @@
 trigger: none
-name: 3.0.$(Rev:r)
+name: 4.0.$(Rev:r)
 
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  WORK_PATH: "vm/path" # Path do diretório de VM ou VMSS
+  ImageName: "image_name" # Nome da Imagem
+  Environment: "mvx" # Identificação do Produto
+
 stages:
+  - stage: Development
 
-- stage: Development
+    variables:
+      - group: PACKER_DEV
 
-  variables: 
-  - group: PACKER_DEV
+    jobs:
+      - job: Packer
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - template: ci-main.yml
+            parameters:
+              WORK_PATH: $(WORK_PATH)
+              ManagedImagePrefix: "$(Environment)_DEV_$(ImageName)"
+              PackerVarFile: "development.pkrvars.hcl"
+              AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
+              TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
+              imageVersion: $(Build.BuildNumber)
+              CLIENT_ID: $(CLIENT_ID)
+              CLIENT_SECRET: $(CLIENT_SECRET)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+              TENANT_ID: $(TENANT_ID)
 
-  jobs:
-  - job: Packer
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - template: ci-main.yml
-      parameters: 
-        WORK_PATH: "vm/modelo" # MUDE o PATH
-        ManagedImagePrefix: "mvx_dev_modelo" # MUDE O nome da definition
-        PackerVarFile: "development.pkrvars.hcl"
-        # AzureGalleryName: "gallery_mvx_development_shared_eastus"
-        AzureResourceGroupTemplate: "rg-mvx-development-shared-eastus"
-        TempAzureResouceGroup: "rg-mvx-development-shared-eastus"
-        imageVersion: $(Build.BuildNumber)
-        CLIENT_ID: $(CLIENT_ID)
-        CLIENT_SECRET: $(CLIENT_SECRET)
-        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-        TENANT_ID: $(TENANT_ID)
+  - stage: Production
 
-- stage: Production
+    variables:
+      - group: PACKER_PROD
 
-  variables: 
-  - group: PACKER_PROD
-  
-  jobs:
-  - job: Packer
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - template: ci-main.yml
-      parameters:
-        WORK_PATH: "vm/modelo" # MUDE o PATH
-        ManagedImagePrefix: "mvx_prod_modelo" # MUDE O nome da definition
-        PackerVarFile: "prod.pkrvars.hcl"
-        # AzureGalleryName: "gallery_mvx_prod_shared_eastus"
-        AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
-        TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
-        imageVersion: $(Build.BuildNumber)
-        CLIENT_ID: $(CLIENT_ID)
-        CLIENT_SECRET: $(CLIENT_SECRET)
-        SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-        TENANT_ID: $(TENANT_ID)
+    jobs:
+      - job: Packer
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - template: ci-main.yml
+            parameters:
+              WORK_PATH: $(WORK_PATH)
+              ManagedImagePrefix: "$(Environment)_PROD_$(ImageName)"
+              PackerVarFile: "prod.pkrvars.hcl"
+              AzureResourceGroupTemplate: "rg-mvx-prod-shared-eastus"
+              TempAzureResouceGroup: "rg-mvx-prod-packer-temp"
+              imageVersion: $(Build.BuildNumber)
+              CLIENT_ID: $(CLIENT_ID)
+              CLIENT_SECRET: $(CLIENT_SECRET)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+              TENANT_ID: $(TENANT_ID)
