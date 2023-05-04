@@ -51,12 +51,10 @@ variable "image_sku" {
   default = "20_04-lts-gen2"
 }
 
-
 variable "image_offer" {
   type    = string
   default = "0001-com-ubuntu-server-focal"
 }
-
 
 
 
