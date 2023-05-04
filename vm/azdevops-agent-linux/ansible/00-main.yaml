@@ -1,0 +1,17 @@
+#####################################################################################
+- name: Setup all Image Linux
+  hosts: default
+  become: true
+
+  tasks:
+    - name: install pip3
+      apt: 
+        name: python3-pip
+        state: present
+        force: true
+
+- name: Install Zabbix Agent
+  ansible.builtin.import_playbook: ./01-install-zabbixagent.yaml
+
+# - name: Install Crowdstrike on Image
+#   ansible.builtin.import_playbook: ./02-crowdstrike-setup.yaml
